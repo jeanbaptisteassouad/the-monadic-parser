@@ -1,0 +1,24 @@
+{
+  "name": "papa.js",
+  "version": "0.0.1",
+  "description": "",
+  "main": "main.js",
+  "repository": {
+    "type": "git",
+    "url": "git+.git"
+  },
+  "author": "Jean-Baptiste Assouad",
+  "license": "MIT",
+  "bugs": {
+    "url": "/issues"
+  },
+  "homepage": "#readme",
+  "scripts": {
+    "start": "npm run dev",
+    "test": "mocha ./src/**/*.test.js"
+  },
+  "devDependencies": {
+    "chai": "4.2.0",
+    "mocha": "6.1.4"
+  }
+}
