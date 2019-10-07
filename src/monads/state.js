@@ -1,5 +1,6 @@
+// This is the State monad
 
-const Accessors = require('./accessors')
+const Accessors = require('../accessors')
 
 const [getF, setF] = Accessors.create()
 
@@ -31,8 +32,6 @@ const then = (a_state, a_to_b_state) => {
     return runState(b_state, s_prime)
   })
 }
-// State s a -> State s b -> State s b
-const the = (a_state, b_state) => then(a_state, () => b_state)
 
 // State s a -> a
 const evalState = (a_state, s) => {
@@ -44,31 +43,14 @@ const execState = (a_state, s) => {
   return runState(a_state, s)[1]
 }
 
-// (b -> State s c) -> (a -> State s b) -> (a -> State s c)
-const _compose = (b_to_c_state, a_to_b_state) => {
-  return (a) => then(a_to_b_state(a), (b) => b_to_c_state(b))
-}
-const compose = (...a_to_b_states) =>
-  a_to_b_states.reduce((acc, val) => _compose(acc, val))
-
-// (a -> State s b) -> (b -> State s c) -> (a -> State s c)
-const pipe = (...a_to_b_states) =>
-  compose(...a_to_b_states.reverse())
-
-const pipeX = (...args) => pipe(...args)()
-
 module.exports = {
-  runState,
   pure,
+  then,
   get,
   set,
+  runState,
   evalState,
-  execState,
-  pipe,
-  pipeX,
-  then,
-  the,
-  compose,
+  execState
 }
 
 
