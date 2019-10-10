@@ -33,6 +33,9 @@ const _fail = (e) => State.pure(Either.left(e))
 // () -> Parser s
 const get = () => State.then(State.get(), pure)
 
+// (a -> b) -> (a -> Parser b)
+const map = (f) => (a) => pure(f(a))
+
 // (a -> ()) -> a -> Parser ()
 const capture = (f) => (a) => {
   f(a)
@@ -98,6 +101,21 @@ const getString = pipe(
   get,
   (s) => pure(ParserState.getString(s))
 )
+
+// () -> Parser Char
+const getOneChar = pipe(
+  getString,
+  (str) => pipeX(
+    getReadingHead,
+    (reading_head) => {
+      if (str[reading_head] === undefined) {
+        return fail('end of file')
+      }
+      return pure(str[reading_head])
+    }
+  )
+)
+
 
 // String -> Parser a -> a
 const parse = (str, parser) => {
@@ -177,27 +195,19 @@ const label = (p, str) => pipe(
 
 
 // (() -> Parser a) -> (() -> Parser [a])
-const many = (p) => pipe(
-  getReadingHead,
-  (reading_head) => pipeX(
+const _many = (array, p) => {
+  return caseOf(
     p,
-    (a) => pipeX(
-      getReadingHead,
-      (next_reading_head) => {
-        if (reading_head !== next_reading_head) {
-          return pipeX(
-            many(p),
-            (array) => {
-              array.push(a)
-              return pure(array)
-            }
-          )
-        } else {
-          return pure([])
-        }
-      }
-    )
+    (e) => pure(array),
+    (a) => {
+      array.push(a)
+      return _many(array, p)()
+    }
   )
+}
+const many = (p) => pipe(
+  () => pure([]),
+  (a) => _many(a, p)(),
 )
 
 // const many1
@@ -247,14 +257,14 @@ const sepBy = (p, sep) => {
 
 
 module.exports = {
-  getReadingHead,
-  consume,
+  // consume,
+  getOneChar,
   consumeOne,
 
   fail,
   capture,
+  map,
 
-  getString,
 
   parse,
 

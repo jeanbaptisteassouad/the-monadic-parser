@@ -1,18 +1,9 @@
 
 const Parser = require('./monads/parser')
 
-// () -> Parser Char
-const getOneChar = Parser.pipe(
-  Parser.getString,
-  (str) => Parser.pipe(
-    Parser.getReadingHead,
-    (reading_head) => Parser.pure(str[reading_head])
-  )()
-)
-
 // (Char -> Bool) -> () -> Parser Char
 const satisfy = (f) => Parser.pipe(
-  getOneChar,
+  Parser.getOneChar,
   (a) => {
     if (f(a)) {
       return Parser.pipe(
