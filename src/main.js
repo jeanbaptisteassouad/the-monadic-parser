@@ -1,42 +1,20 @@
 
 const Parser = require('./monads/parser')
-const State = require('./monads/state')
 const Char = require('./char')
 
 
 
-// const oneOf = (list_char) => {
-//   return Parser.create((nextChar) => {
-//     const char = nextChar()
-//     for (let i = 0; i < list_char.length; i++) {
-//       const val = list_char[i]
-//       if (val === char) {
-//         return val
-//       }
-//     }
-//     return null
-//   })
-// }
 
-// const noneOf = (list_char) => {
-//   return Parser.create((nextChar) => {
-//     const char = nextChar()
-//     for (let i = 0; i < list_char.length; i++) {
-//       const val = list_char[i]
-//       if (val === char) {
-//         return null
-//       }
-//     }
-//     return char
-//   })
-// }
+const p = Parser.or(Char.oneOf('a'), Char.oneOf('u'), Char.oneOf('i'))
 
-// const many = (parser) => {
-//   return Parser.create((nextChar) => {
-//     const ans = []
+const aaa = () => {
+  return Parser.pipeX(
+    Parser.sepBy(p, Char.char('.')),
+    a => Parser.pure(a),
+  )
+}
 
-//   })
-// }
+console.log(Parser.parse('a.u.i.a', aaa()))
+// console.log(Parser.parse('ua  \nuk\nie', aaa()))
 
-// console.log(Parser.parse('auaite', oneOf('ab')))
-// console.log(Parser.parse('nuaite', noneOf('ab')))
+

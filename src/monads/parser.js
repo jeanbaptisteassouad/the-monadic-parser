@@ -4,6 +4,10 @@ const Either = require('./either')
 
 const ParserState = require('./parser-state')
 
+//**************************//
+// Parser Value Constructor //
+//**************************//
+
 // Parser a === State s (Either e a)
 // a -> Parser a
 const pure = (a) => State.pure(Either.pure(a))
@@ -21,6 +25,11 @@ const fail = (e) => {
 }
 const _fail = (e) => State.pure(Either.left(e))
 
+
+//*****************************//
+// Function that return Parser //
+//*****************************//
+
 // () -> Parser s
 const get = () => State.then(State.get(), pure)
 
@@ -30,11 +39,13 @@ const capture = (f) => (a) => {
   return pure(undefined)
 }
 
-// Parser a -> (e -> Parser b) -> (a -> Parser b) -> Parser b
-const caseOf = (parser_a, leftCallback, rightCallback) => 
-  State.then(parser_a, (either_a) =>
-    Either.caseOf(either_a, leftCallback, rightCallback)
+// (a -> Parser b) -> (e -> Parser c) -> (b -> Parser c) -> (a -> Parser c)
+const caseOf = (a_to_parser_b, leftCallback, rightCallback) => (a) =>
+  State.then(a_to_parser_b(a), (either_b) =>
+    Either.caseOf(either_b, leftCallback, rightCallback)
   )
+const caseOfX = (a_to_parser_b, leftCallback, rightCallback) =>
+  caseOf(a_to_parser_b, leftCallback, rightCallback)()
 
 // Parser a -> (a -> Parser b) -> Parser b
 // State s (Either e a) -> (a -> State s (Either e b)) -> State s (Either e b)
@@ -115,7 +126,7 @@ const parse = (str, parser) => {
 // (() -> Parser a) -> (() -> Parser a) -> (() -> Parser a)
 const _or = (es, p, ...ps) => pipe(
   getReadingHead,
-  (reading_head) => caseOf(p(),
+  (reading_head) => caseOfX(p,
     (e) => pipeX(
       getReadingHead,
       (next_reading_head) => {
@@ -137,7 +148,7 @@ const or = (p, ...ps) => _or([], p, ...ps)
 // (() -> Parser a) -> (() -> Parser a)
 const ttry = (p) => pipe(
   getReadingHead,
-  (reading_head) => caseOf(p(),
+  (reading_head) => caseOfX(p,
     (e) => pipeX(
       setReadingHead(reading_head),
       () => _fail(e)
@@ -149,7 +160,7 @@ const ttry = (p) => pipe(
 // (() -> Parser a) -> String -> (() -> Parser a)
 const label = (p, str) => pipe(
   getReadingHead,
-  (reading_head) => caseOf(p(),
+  (reading_head) => caseOfX(p,
     (e) => pipeX(
       getReadingHead,
       (next_reading_head) => {
@@ -194,7 +205,31 @@ const many = (p) => pipe(
 // const between
 // const option
 // const optional
-// const sepBy
+
+// (() -> Parser a) -> (() -> Parser sep) -> (() -> Parser [a])
+const _sepBy = (array, p, sep) => {
+  return caseOf(
+    ttry(sep),
+    (e) => pure(array),
+    (_) => caseOfX(
+      ttry(p),
+      (e) => pure(array),
+      (a) => {
+        array.push(a)
+        return _sepBy(array, p, sep)()
+      }
+    )
+  )
+}
+const sepBy = (p, sep) => {
+  return caseOf(
+    ttry(p),
+    (e) => pure([]),
+    (a) => _sepBy([a], p, sep)()
+  )
+}
+
+
 // const sepBy1
 // const endBy
 // const endBy1
@@ -232,5 +267,7 @@ module.exports = {
   ttry,
   label,
   many,
+
+  sepBy,
 }
 
