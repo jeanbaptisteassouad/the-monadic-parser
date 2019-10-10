@@ -1,6 +1,7 @@
 // This is the State monad
+const root_path = '..'
 
-const Accessors = require('../accessors')
+const Accessors = require(root_path + '/accessors')
 
 const [getF, setF] = Accessors.create()
 

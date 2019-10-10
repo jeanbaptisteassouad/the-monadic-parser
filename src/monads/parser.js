@@ -1,12 +1,13 @@
+const root_path = '..'
 
-const State = require('./state')
-const Either = require('./either')
+const State = require(root_path + '/monads/state')
+const Either = require(root_path + '/monads/either')
 
-const ParserState = require('./parser-state')
+const ParserState = require(root_path + '/parser-state')
 
-//**************************//
-// Parser Value Constructor //
-//**************************//
+//***************//
+// Monadic value //
+//***************//
 
 // Parser a === State s (Either e a)
 // a -> Parser a
@@ -26,15 +27,15 @@ const fail = (e) => {
 const _fail = (e) => State.pure(Either.left(e))
 
 
-//*****************************//
-// Function that return Parser //
-//*****************************//
+//*******************//
+// Monadic Functions //
+//*******************//
 
 // () -> Parser s
 const get = () => State.then(State.get(), pure)
 
 // (a -> b) -> (a -> Parser b)
-const map = (f) => (a) => pure(f(a))
+const pureDot = (f) => (a) => pure(f(a))
 
 // (a -> ()) -> a -> Parser ()
 const capture = (f) => (a) => {
@@ -62,12 +63,11 @@ const then = (state_either_a, a_to_state_either_b) =>
   )
 
 // (a -> Parser b) -> (b -> Parser c) -> (a -> Parser c)
-const _pipe = (a_to_parser_b, b_to_parser_c) => {
-  return (a) => {
-    const parser_b = a_to_parser_b(a)
-    return then(parser_b, b_to_parser_c)
-  }
+const _pipe = (a_to_parser_b, b_to_parser_c) => (a) => {
+  const parser_b = a_to_parser_b(a)
+  return then(parser_b, b_to_parser_c)
 }
+
 const pipe = (...args) => args.reduce((acc, val) => _pipe(acc, val))
 const pipeX = (...args) => pipe(...args)()
 
@@ -75,19 +75,19 @@ const pipeX = (...args) => pipe(...args)()
 // () -> Parser Int
 const getReadingHead = pipe(
   get,
-  (s) => pure(ParserState.getReadingHead(s))
+  pureDot(ParserState.getReadingHead)
 )
 
 // Int -> () -> Parser ()
 const setReadingHead = (a) => pipe(
   get,
-  (s) => pure(ParserState.setReadingHead(a, s))
+  pureDot(s=>ParserState.setReadingHead(a, s))
 )
 
 // (Int -> Int) -> () -> Parser ()
 const updateReadingHead = (f) => pipe(
   get,
-  (s) => pure(ParserState.updateReadingHead(f, s))
+  pureDot(s=>ParserState.updateReadingHead(f, s))
 )
 
 // Int -> () -> Parser ()
@@ -99,13 +99,15 @@ const consumeOne = consume(1)
 // () -> Parser String
 const getString = pipe(
   get,
-  (s) => pure(ParserState.getString(s))
+  pureDot(ParserState.getString)
 )
 
 // () -> Parser Char
-const getOneChar = pipe(
-  getString,
-  (str) => pipeX(
+const getOneChar = () => {
+  let str
+  return pipeX(
+    getString,
+    capture(a => str = a),
     getReadingHead,
     (reading_head) => {
       if (str[reading_head] === undefined) {
@@ -114,8 +116,7 @@ const getOneChar = pipe(
       return pure(str[reading_head])
     }
   )
-)
-
+}
 
 // String -> Parser a -> a
 const parse = (str, parser) => {
@@ -132,7 +133,7 @@ const parse = (str, parser) => {
       throw new Error(error_str)
     },
     (ans) => {
-      console.log(final_state)
+      // console.log(final_state)
       return ans
     }
   )
@@ -144,7 +145,8 @@ const parse = (str, parser) => {
 // (() -> Parser a) -> (() -> Parser a) -> (() -> Parser a)
 const _or = (es, p, ...ps) => pipe(
   getReadingHead,
-  (reading_head) => caseOfX(p,
+  (reading_head) => caseOfX(
+    p,
     (e) => pipeX(
       getReadingHead,
       (next_reading_head) => {
@@ -166,7 +168,8 @@ const or = (p, ...ps) => _or([], p, ...ps)
 // (() -> Parser a) -> (() -> Parser a)
 const ttry = (p) => pipe(
   getReadingHead,
-  (reading_head) => caseOfX(p,
+  (reading_head) => caseOfX(
+    p,
     (e) => pipeX(
       setReadingHead(reading_head),
       () => _fail(e)
@@ -178,7 +181,8 @@ const ttry = (p) => pipe(
 // (() -> Parser a) -> String -> (() -> Parser a)
 const label = (p, str) => pipe(
   getReadingHead,
-  (reading_head) => caseOfX(p,
+  (reading_head) => caseOfX(
+    p,
     (e) => pipeX(
       getReadingHead,
       (next_reading_head) => {
@@ -263,7 +267,7 @@ module.exports = {
 
   fail,
   capture,
-  map,
+  pureDot,
 
 
   parse,

@@ -1,5 +1,6 @@
+const root_path = '.'
 
-const Parser = require('./monads/parser')
+const Parser = require(root_path + '/monads/parser')
 
 // (Char -> Bool) -> () -> Parser Char
 const satisfy = (f) => Parser.pipe(

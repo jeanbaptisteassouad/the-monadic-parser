@@ -1,7 +1,9 @@
 const chai = require('chai')
 const expect = chai.expect
 
-const State = require('./state')
+const root_path = '..'
+
+const State = require(root_path + '/monads/state')
 
 describe('state', () => {
   it('runState(pure(a), s) === [a, s]', () => {

@@ -1,5 +1,6 @@
+const root_path = '.'
 
-const Accessors = require('../accessors')
+const Accessors = require(root_path + '/accessors')
 
 const [getReadingHead, setReadingHead, updateReadingHead] = Accessors.create()
 const [getString, setString] = Accessors.create()

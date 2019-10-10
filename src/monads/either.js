@@ -1,6 +1,7 @@
 // This is the Either monad
+const root_path = '..'
 
-const Accessors = require('../accessors')
+const Accessors = require(root_path + '/accessors')
 
 const none_key = Symbol()
 

@@ -1,7 +1,9 @@
 const chai = require('chai')
 const expect = chai.expect
 
-const Either = require('./either')
+const root_path = '..'
+
+const Either = require(root_path + '/monads/either')
 
 describe('either', () => {
   it('pure === right', () => {
