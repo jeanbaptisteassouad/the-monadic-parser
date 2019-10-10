@@ -4,13 +4,65 @@ const expect = chai.expect
 const Either = require('./either')
 
 describe('either', () => {
-  it('fromRight(b, pure(a)) === a', () => {
-    const a = 'dummy_string'
-    const b = 'dummy_string_2'
+  it('pure === right', () => {
     expect(
-      Either.fromRight(b, Either.pure(a))
+      Either.pure
     ).to.deep.equal(
-      a
+      Either.right
+    )
+  })
+
+  it('caseOf(right(a), a=>a+a, a=>a*a) === a*a', () => {
+    const a = 3
+    expect(
+      Either.caseOf(Either.right(a), a=>a+a, a=>a*a)
+    ).to.deep.equal(
+      9
+    )
+  })
+
+  it('caseOf(left(a), a=>a+a, a=>a*a) === a+a', () => {
+    const a = 3
+    expect(
+      Either.caseOf(Either.left(a), a=>a+a, a=>a*a)
+    ).to.deep.equal(
+      6
+    )
+  })
+
+  it('isRight(right(a)) === true', () => {
+    const a = 'dummy_string'
+    expect(
+      Either.isRight(Either.right(a))
+    ).to.deep.equal(
+      true
+    )
+  })
+
+  it('isLeft(right(a)) === false', () => {
+    const a = 'dummy_string'
+    expect(
+      Either.isLeft(Either.right(a))
+    ).to.deep.equal(
+      false
+    )
+  })
+
+  it('isRight(left(a)) === false', () => {
+    const a = 'dummy_string'
+    expect(
+      Either.isRight(Either.left(a))
+    ).to.deep.equal(
+      false
+    )
+  })
+
+  it('isLeft(left(a)) === true', () => {
+    const a = 'dummy_string'
+    expect(
+      Either.isLeft(Either.left(a))
+    ).to.deep.equal(
+      true
     )
   })
 
@@ -29,16 +81,6 @@ describe('either', () => {
     const b = 'dummy_string_2'
     expect(
       Either.fromRight(b, Either.left(a))
-    ).to.deep.equal(
-      b
-    )
-  })
-
-  it('fromLeft(b, pure(a)) === b', () => {
-    const a = 'dummy_string'
-    const b = 'dummy_string_2'
-    expect(
-      Either.fromLeft(b, Either.pure(a))
     ).to.deep.equal(
       b
     )

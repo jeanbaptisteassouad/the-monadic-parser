@@ -1,6 +1,6 @@
 
-const Parser = require('./parser')
-const State = require('./state')
+const Parser = require('./monads/parser')
+const State = require('./monads/state')
 const Char = require('./char')
 
 

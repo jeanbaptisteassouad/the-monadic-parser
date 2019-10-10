@@ -14,7 +14,7 @@
   },
   "homepage": "#readme",
   "scripts": {
-    "start": "npm run dev",
+    "start": "node ./src/main.js",
     "test": "mocha ./src/**/*.test.js"
   },
   "devDependencies": {

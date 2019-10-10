@@ -1,5 +1,5 @@
 
-const Parser = require('./parser')
+const Parser = require('./monads/parser')
 
 // () -> Parser Char
 const getOneChar = Parser.pipe(
@@ -20,10 +20,45 @@ const satisfy = (f) => Parser.pipe(
         () => Parser.pure(a)
       )()
     } else {
-      return Parser.pure(null) /////////////////////////
+      return Parser.fail()
     }
   }
 )
+
+// Char -> () -> Parser Char
+const char = (c) => Parser.label(
+  satisfy(a => a === c),
+  JSON.stringify(c)
+)
+
+// () -> Parser Char
+const anyChar = satisfy(() => true)
+
+// String -> () -> Parser String
+const _string = (fullstring, str) => {
+  if (str.length === 0) {
+    return () => Parser.pure('')
+  }
+  
+  const head = str[0]
+  const tail = str.slice(1)
+
+  let ans = ''
+
+  let error_msg = JSON.stringify(fullstring)
+
+  return Parser.label(
+    Parser.pipe(
+      char(head),
+      Parser.capture(a => ans = ans + a),
+      _string(fullstring, tail),
+      Parser.capture(a => ans = ans + a),
+      () => Parser.pure(ans),
+    ),
+    error_msg
+  )
+}
+const string = (str) => _string(str, str)
 
 const isInCharList = (char, list_char) => {
   for (let i = 0; i < list_char.length; i++) {
@@ -35,11 +70,20 @@ const isInCharList = (char, list_char) => {
   return false
 }
 
-// String -> () -> Parser Char
-const oneOf = (list_char) => satisfy(a => isInCharList(a, list_char))
+const formatListChar = (list_char) =>
+  JSON.stringify(list_char.split(''))
 
 // String -> () -> Parser Char
-const noneOf = (list_char) => satisfy(a => isInCharList(a, list_char) === false)
+const oneOf = (list_char) => Parser.label(
+  satisfy(a => isInCharList(a, list_char)),
+  'one of '+formatListChar(list_char)
+)
+
+// String -> () -> Parser Char
+const noneOf = (list_char) => Parser.label(
+  satisfy(a => isInCharList(a, list_char) === false),
+  'none of '+formatListChar(list_char)
+)
 
 // ref : https://en.wikipedia.org/wiki/Whitespace_character
 const spaces_char = []
@@ -74,124 +118,75 @@ spaces_char.push(no_break_space_char)
 
 
 // () -> Parser Char
-const space = satisfy(a => spaces_char.includes(a))
+const space = Parser.label(
+  satisfy(a => spaces_char.includes(a)),
+  'a space'
+)
 
 // () -> Parser [Char]
-const spaces = Parser.many(space)
-
-
-// () -> Parser Char
-const newline = satisfy(a => a === line_feed_char)
-
-// () -> Parser Char
-const crlf = Parser.pipe(
-  Parser.getString,
-  (str) => Parser.pipe(
-    Parser.getReadingHead,
-    (reading_head) => {
-      if (
-        str[reading_head] === carriage_return_char &&
-        str[reading_head + 1] === line_feed_char
-      ) {
-        return Parser.pipe(
-          Parser.consume(2),
-          Parser.pure(line_feed_char)
-        )()
-      } else {
-        return Parser.pure(null) /////////////////////////
-      }
-    }
-  )()
+const spaces = Parser.label(
+  Parser.many(space),
+  'spaces'
 )
 
 // () -> Parser Char
-const endOfLine = Parser.or(newline, crlf)
+const newline = Parser.label(
+  satisfy(a => a === line_feed_char),
+  'a newline'
+)
+
+const crlf = Parser.label(
+  Parser.ttry(string(carriage_return_char + line_feed_char)),
+  'a crlf'
+)
 
 // () -> Parser Char
-const tab = satisfy(a => a === character_tabulation_char)
+const endOfLine = Parser.label(
+  Parser.or(newline, crlf),
+  'an end of line'
+)
 
 // () -> Parser Char
-const upper = satisfy(a => a.toUpperCase() === a)
+const tab = Parser.label(
+  satisfy(a => a === character_tabulation_char),
+  'a tab'
+)
 
 // () -> Parser Char
-const lower = satisfy(a => a.toLowerCase() === a)
+const upper = Parser.label(
+  satisfy(a => a.toUpperCase() === a),
+  'an upper case character'
+)
+
+// () -> Parser Char
+const lower = Parser.label(
+  satisfy(a => a.toLowerCase() === a),
+  'a lower case character'
+)
 
 // const alphaNum
 // const letter
 
 // () -> Parser Char
 const digit_regex = new RegExp(/[0-9]/)
-const digit = satisfy(a => a.match(digit_regex) !== null)
+const digit = Parser.label(
+  satisfy(a => a.match(digit_regex) !== null),
+  'a digit'
+)
 
 // () -> Parser Char
 const hex_digit_regex = new RegExp(/[0-9a-fA-F]/)
-const hexDigit = satisfy(a => a.match(hex_digit_regex) !== null)
+const hexDigit = Parser.label(
+  satisfy(a => a.match(hex_digit_regex) !== null),
+  'a hex digit'
+)
 
 // () -> Parser Char
 const oct_digit_regex = new RegExp(/[0-7]/)
-const octDigit = satisfy(a => a.match(oct_digit_regex) !== null)
-
-// Char -> () -> Parser Char
-const char = (c) => satisfy(a => a === c)
-
-// () -> Parser Char
-const anyChar = satisfy(() => true)
-
-// String -> () -> Parser String
-// 
-const string = (str) => {
-  if (str.length === 0) {
-    return () => Parser.pure('')
-  }
-  
-  const head = str[0]
-  const tail = str.slice(1)
-
-  let ans = ''
-  const append = a => {
-    ans = ans + a
-    return Parser.pure()
-  }
-
-  return Parser.pipe(
-    char(head),
-    append,
-    string(tail),
-    append,
-    () => Parser.pure(ans)
-  )
-}
-
-
-
-
-
-
-const p = Parser.or(oneOf('a'), oneOf('u'), oneOf('i'))
-
-const aaa = () => {
-  let ans = ''
-  const append = a => {
-    ans = ans + a
-    return Parser.pure()
-  }
-  return Parser.pipeX(
-    Parser.or(string('ud'), oneOf('u')),
-    append,
-    spaces,
-    p,
-    append,
-    p,
-    append,
-    () => Parser.pure(ans)
-  )
-}
-
-
-console.log(Parser.parse('ua  \nuk\nie', aaa()))
-
-
-
+const octDigit = Parser.label(
+  satisfy(a => a.match(oct_digit_regex) !== null),
+  'an oct digit'
+)
 
 module.exports = {
   oneOf,

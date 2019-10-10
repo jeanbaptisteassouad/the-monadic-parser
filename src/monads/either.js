@@ -31,6 +31,14 @@ const isLeft = a => getRight(a) === none_key
 // Either c a -> Bool
 const isRight = a => getLeft(a) === none_key
 
+const caseOf = (a, leftCallback, rightCallback) => {
+  if (isRight(a)) {
+    return rightCallback(getRight(a))
+  } else {
+    return leftCallback(getLeft(a))
+  }
+}
+
 // a -> Either c a
 const pure = right
 
@@ -65,7 +73,10 @@ module.exports = {
   right,
   left,
   pure,
+  caseOf,
   then,
+  isRight,
+  isLeft,
   fromRight,
   fromLeft,
 }
