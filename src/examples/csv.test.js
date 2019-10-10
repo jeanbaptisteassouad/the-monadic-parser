@@ -11,16 +11,16 @@ describe('csv', () => {
     const ans = [
       ['auie', 'eiua', 'aai', 'eeiu'],
       ['sstt', 'asa"tuier', 'ss,rt', 'stsn'],
-      ['tse', 'rr', 's', 'auietsn\n\nett'],
+      ['tse', 'rr', 's', 'auietsn\r\n\r\nett'],
       ['rrrr', '122', '13', '34']
     ]
 
     let str = ''
-    str += 'auie,eiua,aai,eeiu\n'
-    str += '"sstt","asa""tuier","ss,rt","stsn"\n'
-    str += 'tse,rr,s,"auietsn\n'
-    str += '\n'
-    str += 'ett"\n'
+    str += 'auie,eiua,aai,eeiu\r\n'
+    str += '"sstt","asa""tuier","ss,rt","stsn"\r\n'
+    str += 'tse,rr,s,"auietsn\r\n'
+    str += '\r\n'
+    str += 'ett"\r\n'
     str += 'rrrr,122,13,34'
 
     expect(
