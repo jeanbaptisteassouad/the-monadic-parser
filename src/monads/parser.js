@@ -256,7 +256,11 @@ const option = (a, p) => pipe(
   )
 )
 
-// const optional
+// (() -> Parser a) -> (() -> Parser ())
+const optional = (p) => pipe(
+  option(null, p),
+  () => pure()
+)
 
 // (() -> Parser a) -> (() -> Parser sep) -> (() -> Parser [a])
 const _sepBy = (array, p, sep) => {
@@ -280,9 +284,14 @@ const sepBy = (p, sep) => {
     (a) => _sepBy([a], p, sep)()
   )
 }
+const sepBy1 = (p, sep) => {
+  return caseOf(
+    ttry(p),
+    fail,
+    (a) => _sepBy([a], p, sep)()
+  )
+}
 
-
-// const sepBy1
 // const endBy
 // const endBy1
 // const sepEndBy
@@ -299,31 +308,34 @@ const sepBy = (p, sep) => {
 
 
 module.exports = {
+  // monadic value creators
+  fail,
+  pure,
+
+  // monadic functions
   getOneChar,
   consumeOne,
 
-  fail,
+  // monadic function helpers
   capture,
   pureDot,
 
 
-  parse,
-
-
+  // monadic function combinators
   pipe,
   pipeX,
-  pure,
 
   or,
   ttry,
   label,
   many,
   many1,
-
-  sepBy,
+  count,
   between,
   option,
+  sepBy,
 
-  count,
+  // let you run your parser
+  parse,
 }
 

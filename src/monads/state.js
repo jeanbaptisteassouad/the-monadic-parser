@@ -13,7 +13,7 @@ const state = (s_to_a_s) => {
   return a
 }
 
-// State s a -> [a, s]
+// (State s a, s) -> [a, s]
 const runState = (state, s) => {
   return getF(state)(s)
 }

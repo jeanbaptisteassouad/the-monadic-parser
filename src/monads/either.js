@@ -8,7 +8,7 @@ const none_key = Symbol()
 const [getRight, setRight] = Accessors.create()
 const [getLeft, setLeft] = Accessors.create()
 
-// b -> Either b a
+// e -> Either e a
 const left = (val) => {
   const a = {}
 
@@ -17,7 +17,7 @@ const left = (val) => {
 
   return a
 }
-// a -> Either b a
+// a -> Either e a
 const right = (val) => {
   const a = {}
 
@@ -27,11 +27,12 @@ const right = (val) => {
   return a
 }
 
-// Either c a -> Bool
+// Either e a -> Bool
 const isLeft = a => getRight(a) === none_key
-// Either c a -> Bool
+// Either e a -> Bool
 const isRight = a => getLeft(a) === none_key
 
+// (Either e a, e -> b, a -> b) -> b
 const caseOf = (a, leftCallback, rightCallback) => {
   if (isRight(a)) {
     return rightCallback(getRight(a))
@@ -40,10 +41,10 @@ const caseOf = (a, leftCallback, rightCallback) => {
   }
 }
 
-// a -> Either c a
+// a -> Either e a
 const pure = right
 
-// Either c a -> (a -> Either c b) -> Either c b
+// (Either e a, (a -> Either e b)) -> Either e b
 const then = (a_either, a_to_b_either) => {
   if (isLeft(a_either)) {
     return a_either
@@ -52,7 +53,7 @@ const then = (a_either, a_to_b_either) => {
   }
 }
 
-// c -> Either c a -> c
+// (e, Either e a) -> e
 const fromLeft = (c, a_either) => {
   if (isLeft(a_either)) {
     return getLeft(a_either)
@@ -61,7 +62,7 @@ const fromLeft = (c, a_either) => {
   }
 }
 
-// a -> Either c a -> a
+// (a, Either e a) -> a
 const fromRight = (a, a_either) => {
   if (isRight(a_either)) {
     return getRight(a_either)
