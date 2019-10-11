@@ -14,17 +14,7 @@ const ParserState = require(root_path + '/parser-state')
 const pure = (a) => State.pure(Either.pure(a))
 
 // e -> Parser a
-const fail = (e) => {
-  let reading_head
-  return pipeX(
-    getReadingHead,
-    capture(a => reading_head = a),
-    get,
-    capture(s => ParserState.setFailedHead(reading_head, s)),
-    () => _fail(e),
-  )
-}
-const _fail = (e) => State.pure(Either.left(e))
+const fail = (e) => State.pure(Either.left(e))
 
 
 //*******************//
@@ -90,10 +80,14 @@ const updateReadingHead = (f) => pipe(
   pureDot(s=>ParserState.updateReadingHead(f, s))
 )
 
-// Int -> () -> Parser ()
-const consume = (x) => updateReadingHead(a=>a+x)
+// (Int) -> () -> Parser ()
+const setFailedHead = (a) => pipe(
+  get,
+  pureDot(s=>ParserState.setFailedHead(a, s))
+)
+
 // () -> Parser ()
-const consumeOne = consume(1)
+const consumeOne = updateReadingHead(a=>a+1)
 
 
 // () -> Parser String
@@ -113,7 +107,10 @@ const getOneChar = () => {
       if (str[reading_head] === undefined) {
         return fail('end of file')
       }
-      return pure(str[reading_head])
+      return pipeX(
+        setFailedHead(reading_head),
+        () => pure(str[reading_head])
+      )
     }
   )
 }
@@ -123,23 +120,17 @@ const parse = (str, parser) => {
   const [either_ans, final_state] = State.runState(parser, ParserState.create(str))
   return Either.caseOf(either_ans,
     (msg) => {
-      console.log(final_state)
-      const reading_head = ParserState.getReadingHead(final_state)
       const failed_head = ParserState.getFailedHead(final_state)
       let error_str = `unexpected ${JSON.stringify(str[failed_head])}`
+      console.log(str.slice(failed_head))
       if (msg) {
         error_str = error_str+', expecting '+msg
       }
       throw new Error(error_str)
     },
-    (ans) => {
-      // console.log(final_state)
-      return ans
-    }
+    (a) => a
   )
 }
-
-
 
 
 // (() -> Parser a) -> (() -> Parser a) -> (() -> Parser a)
@@ -152,11 +143,11 @@ const _or = (es, p, ...ps) => pipe(
       (next_reading_head) => {
         es.push(e)
         if (reading_head !== next_reading_head) {
-          return _fail(e)
+          return fail(e)
         } else if (0 < ps.length) {
           return _or(es, ...ps)()
         } else {
-          return _fail(es.join(' or '))
+          return fail(es.join(' or '))
         }
       }
     ),
@@ -172,7 +163,7 @@ const ttry = (p) => pipe(
     p,
     (e) => pipeX(
       setReadingHead(reading_head),
-      () => _fail(e)
+      () => fail(e)
     ),
     pure
   )
@@ -187,9 +178,9 @@ const label = (p, str) => pipe(
       getReadingHead,
       (next_reading_head) => {
         if (reading_head !== next_reading_head) {
-          return _fail(e)
+          return fail(e)
         } else {
-          return _fail(str)
+          return fail(str)
         }
       }
     ),
@@ -213,11 +204,58 @@ const many = (p) => pipe(
   () => pure([]),
   (a) => _many(a, p)(),
 )
+const many1 = (p) => pipe(
+  p,
+  (a) => _many([a], p)(),
+)
 
-// const many1
-// const count
-// const between
-// const option
+// Int -> (() -> Parser a) -> (() -> Parser [a])
+const count = (n, p) => {
+  if (n <= 0) {
+    return pure([])
+  } else {
+    return caseOfX(
+      p,
+      fail,
+      (a) => pipeX(
+        count(n - 1, p),
+        pureDot(array => [a].concat(array))
+      )
+    )
+  }
+}
+
+// (() -> Parser open) -> (() -> Parser close) -> (() -> Parser a) -> (() -> Parser a)
+const between = (open, close, p) => () => {
+  let ans
+  return pipeX(
+    open,
+    p,
+    capture(a=>ans = a),
+    close,
+    () => pure(ans)
+  )
+}
+
+// a -> (() -> Parser a) -> (() -> Parser a)
+const option = (a, p) => pipe(
+  getReadingHead,
+  (reading_head) => caseOfX(
+    p,
+    (e) => pipeX(
+      getReadingHead,
+      (next_reading_head) => {
+        if (reading_head !== next_reading_head) {
+          return fail(e)
+        } else {
+          return pure(a)
+        }
+      }
+    ),
+    pure
+  )
+)
+
 // const optional
 
 // (() -> Parser a) -> (() -> Parser sep) -> (() -> Parser [a])
@@ -261,7 +299,6 @@ const sepBy = (p, sep) => {
 
 
 module.exports = {
-  // consume,
   getOneChar,
   consumeOne,
 
@@ -281,7 +318,12 @@ module.exports = {
   ttry,
   label,
   many,
+  many1,
 
   sepBy,
+  between,
+  option,
+
+  count,
 }
 

@@ -1,28 +1,54 @@
+const root_path = '.'
 
-const Parser = require('./monads/parser')
-const Char = require('./char')
-const Csv = require('./examples/csv')
+const Parser = require(root_path + '/monads/parser')
+const Char = require(root_path + '/char')
+const Csv = require(root_path + '/examples/csv')
+const Json = require(root_path + '/examples/json')
 
-const p = Parser.or(Char.oneOf('a'), Char.oneOf('u'), Char.oneOf('i'))
+// const json_str = JSON.stringify({
+//   uest:'sautens\ntesss\u0022',
+//   dser:  12,
+//   dddrr: false,
+//   ddddauitensr: {
+//     tsts:true,
+//     aaa:null,
+//   },
+//   etsn: ['satuen', 13, -34, 4.0889, 3e3, 3E-9, 3.9e-3, false]
+// })
 
-const aaa = () => {
-  return Parser.pipeX(
-    Parser.sepBy(p, Char.char('.')),
-    a => Parser.pure(a),
-  )
-}
+const json_str = JSON.stringify([
+  false,
+  true,
+  null,
+  124,
+  0,
+  42.8,
+  -89.4,
+  0.35e3,
+  0.35E3,
+  12.5e-2,
+  12.5E-2,
+  3e3,
+  3e-3,
+  87e+2,
+  87E+2,
+  0.352,
+  'nauitedpent',
+  'sutenau"austeun"',
+  '\bsdpt a \n ast/ein \t \/ai\r \fets \uaf7bsdet, n',
+  {},
+  [],
+  '',
+  {
+    auets:false,
+    usetaa:[14, 'tisen'],
+    ddd:{
+      rr:null,
+      satu:'sutenstui\t \n \u0045',
+    }
+  }
+])
 
-const csv = Csv.rfc4180
-
-const csv_str = `auie,eiua,aai,eeiu
-"sstt","asa""tuier","ss,rt","stsn"
-tse,rr,s,"auietsn
-
-ett"
-rrrr,122,13,34`
-
-console.log(JSON.stringify(csv_str))
-
-console.log(Parser.parse(csv_str, csv()))
-
+console.log(json_str)
+console.log(Parser.parse(json_str, Json.rfc4627()))
 
