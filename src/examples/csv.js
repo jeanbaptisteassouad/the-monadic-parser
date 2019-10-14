@@ -17,7 +17,7 @@ const csv = (cell_char) => {
     )
   )
 
-  // () -> Parser [Char]
+  // () -> Parser String
   const quotedCell = () => {
     let content
     return Parser.pipeX(
@@ -25,18 +25,18 @@ const csv = (cell_char) => {
       Parser.many(quotedChar),
       Parser.capture(a => content = a),
       Char.char('"'),
-      () => Parser.pure(content)
+      () => Parser.pure(content.join(''))
     )
   }
 
   // () -> Parser String
-  const cell = Parser.pipe(
-    Parser.or(
-      quotedCell,
-      Parser.many(Char.noneOf(cell_char+'\n\r'))
-    ),
+  const notQuotedCell = Parser.pipe(
+    Parser.many(Char.noneOf(cell_char+'\n\r')),
     Parser.pureDot(a => a.join(''))
   )
+
+  // () -> Parser String
+  const cell = Parser.or(quotedCell, notQuotedCell)
 
   // () -> Parser Char
   const cellSeparator = Char.char(cell_char)
