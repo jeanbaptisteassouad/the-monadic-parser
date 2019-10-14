@@ -181,6 +181,8 @@ const octDigit = Parser.label(
 )
 
 module.exports = {
+  satisfy,
+  string,
   oneOf,
   noneOf,
   spaces,
@@ -198,7 +200,5 @@ module.exports = {
   octDigit,
   char,
   anyChar,
-  satisfy,
-  string,
 }
 
