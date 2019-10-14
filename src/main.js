@@ -5,17 +5,6 @@ const Char = require(root_path + '/char')
 const Csv = require(root_path + '/examples/csv')
 const Json = require(root_path + '/examples/json')
 
-// const json_str = JSON.stringify({
-//   uest:'sautens\ntesss\u0022',
-//   dser:  12,
-//   dddrr: false,
-//   ddddauitensr: {
-//     tsts:true,
-//     aaa:null,
-//   },
-//   etsn: ['satuen', 13, -34, 4.0889, 3e3, 3E-9, 3.9e-3, false]
-// })
-
 const json_str = JSON.stringify([
   false,
   true,

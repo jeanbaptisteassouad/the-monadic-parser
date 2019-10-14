@@ -306,6 +306,368 @@ describe('Parser', () => {
     })
 
 
+    describe('.many', () => {
+      it('should return an array of match', () => {
+        const str = 'auie'
+        const f = Parser.many(Char.oneOf('iua'))
+
+        expect(Parser.parse(str, f())).to.deep.equal(
+          ['a', 'u', 'i']
+        )
+        expect(Parser.parse('a', f())).to.deep.equal(
+          ['a']
+        )
+        expect(Parser.parse('str', f())).to.deep.equal(
+          []
+        )
+
+      })
+    })
+
+    describe('.many1', () => {
+      it('should return an array of at least one match', () => {
+        const str = 'auie'
+        const f = Parser.many1(Char.oneOf('iua'))
+
+        expect(Parser.parse(str, f())).to.deep.equal(
+          ['a', 'u', 'i']
+        )
+        expect(Parser.parse('a', f())).to.deep.equal(
+          ['a']
+        )
+        expect(() => Parser.parse('str', f())).to.throw(
+          ParserError.ParserFailedError,
+        )
+
+      })
+    })
+
+    describe('.count', () => {
+      it('count(n, p) should return an array of exactly n match', () => {
+        const str = 'auie'
+        const f = Parser.count(3, Char.oneOf('iua'))
+
+        expect(Parser.parse(str, f())).to.deep.equal(
+          ['a', 'u', 'i']
+        )
+        expect(() => Parser.parse('a', f())).to.throw(
+          ParserError.ParserFailedError,
+        )
+        expect(() => Parser.parse('str', f())).to.throw(
+          ParserError.ParserFailedError,
+        )
+        expect(Parser.parse('auii', f())).to.deep.equal(
+          ['a', 'u', 'i']
+        )
+
+      })
+    })
+
+
+    describe('.between', () => {
+      it('between(start, end, p) === pipe(start, p, (a) => pipeX(end, () => pure(a)) )', () => {
+        const str = '[auie]'
+        const f = Parser.between(
+          Char.char('['),
+          Char.char(']'),
+          Parser.many(Char.oneOf('iuae'))
+        )
+
+        expect(Parser.parse(str, f())).to.deep.equal(
+          ['a', 'u', 'i', 'e']
+        )
+        expect(() => Parser.parse('[a', f())).to.throw(
+          ParserError.ParserFailedError,
+        )
+        expect(() => Parser.parse('aui', f())).to.throw(
+          ParserError.ParserFailedError,
+        )
+        expect(() => Parser.parse('[d]', f())).to.throw(
+          ParserError.ParserFailedError,
+        )
+
+      })
+    })
+
+    describe('.option', () => {
+      it('option(a, p) === p if p succeeds', () => {
+        const str = 'auie'
+        const f = Parser.option(
+          'option',
+          Char.oneOf('iuae')
+        )
+
+        expect(Parser.parse(str, f())).to.deep.equal(
+          'a'
+        )
+      })
+
+       it('option(a, p) === a if p fails', () => {
+        const str = 'kauie'
+        const f = Parser.option(
+          'option',
+          Char.oneOf('iuae')
+        )
+
+        expect(Parser.parse(str, f())).to.deep.equal(
+          'option'
+        )
+      })
+    })
+
+    describe('.optional', () => {
+      it('optional(f) always succeeds expect when f has failed with consuming some input', () => {
+        const str = 'auie'
+        const f = Parser.pipe(
+          Parser.optional(Char.char(':')),
+          Char.oneOf('auie')
+        )
+
+        expect(Parser.parse(str, f())).to.deep.equal(
+          'a'
+        )
+        expect(Parser.parse(':'+str, f())).to.deep.equal(
+          'a'
+        )
+
+        const g = Parser.pipe(
+          Parser.optional(Char.string('::')),
+          Char.oneOf('auie')
+        )
+
+        expect(() => Parser.parse(':'+str, g())).to.throw(
+          ParserError.ParserFailedError,
+        )
+      })
+    })
+
+
+    describe('.sepBy', () => {
+      it('sepBy(f, sep)', () => {
+        const str = 'a,u,ie'
+        const f = Parser.sepBy(
+          Char.oneOf('auie'),
+          Char.char(',')
+        )
+
+        expect(Parser.parse(str, f())).to.deep.equal(
+          ['a', 'u', 'i']
+        )
+        expect(Parser.parse('a,e', f())).to.deep.equal(
+          ['a', 'e']
+        )
+        expect(Parser.parse('a', f())).to.deep.equal(
+          ['a']
+        )
+        expect(Parser.parse('kk', f())).to.deep.equal(
+          []
+        )
+      })
+
+      it('sepBy1(f, sep)', () => {
+        const str = 'a,u,ie'
+        const f = Parser.sepBy1(
+          Char.oneOf('auie'),
+          Char.char(',')
+        )
+
+        expect(Parser.parse(str, f())).to.deep.equal(
+          ['a', 'u', 'i']
+        )
+        expect(Parser.parse('a,e', f())).to.deep.equal(
+          ['a', 'e']
+        )
+        expect(Parser.parse('a', f())).to.deep.equal(
+          ['a']
+        )
+        expect(() => Parser.parse('kk', f())).to.throw(
+          ParserError.ParserFailedError,
+        )
+      })
+    })
+
+
+    describe('.endBy', () => {
+      it('endBy(f, sep)', () => {
+        const str = 'a;u;ie'
+        const f = Parser.endBy(
+          Char.oneOf('auie'),
+          Char.char(';')
+        )
+
+        expect(Parser.parse(str, f())).to.deep.equal(
+          ['a', 'u']
+        )
+        expect(Parser.parse('a;e', f())).to.deep.equal(
+          ['a']
+        )
+        expect(Parser.parse('a', f())).to.deep.equal(
+          []
+        )
+        expect(Parser.parse('kk', f())).to.deep.equal(
+          []
+        )
+      })
+
+      it('endBy1(f, sep)', () => {
+        const str = 'a;u;ie'
+        const f = Parser.endBy1(
+          Char.oneOf('auie'),
+          Char.char(';')
+        )
+
+        expect(Parser.parse(str, f())).to.deep.equal(
+          ['a', 'u']
+        )
+        expect(Parser.parse('a;e', f())).to.deep.equal(
+          ['a']
+        )
+        expect(() => Parser.parse('a', f())).to.throw(
+          ParserError.ParserFailedError,
+        )
+        expect(() => Parser.parse('kk', f())).to.throw(
+          ParserError.ParserFailedError,
+        )
+      })
+    })
+
+    describe('.sepEndBy', () => {
+      it('sepEndBy(f, sep)', () => {
+        const f = () => {
+          let content
+          return Parser.pipeX(
+            Parser.sepEndBy(
+              Char.oneOf('auie'),
+              Char.char(';')
+            ),
+            Parser.capture(a=>content=a),
+            Char.char('k'),
+            () => Parser.pure(content)
+          )
+        }
+        expect(Parser.parse('a;u;i;e;k', f())).to.deep.equal(
+          ['a', 'u', 'i', 'e']
+        )
+        expect(Parser.parse('a;u;i;ek', f())).to.deep.equal(
+          ['a', 'u', 'i', 'e']
+        )
+        expect(Parser.parse('ak', f())).to.deep.equal(
+          ['a']
+        )
+        expect(Parser.parse('k', f())).to.deep.equal(
+          []
+        )
+      })
+    })
+
+    describe('.sepEndBy1', () => {
+      it('sepEndBy1(f, sep)', () => {
+        const f = () => {
+          let content
+          return Parser.pipeX(
+            Parser.sepEndBy1(
+              Char.oneOf('auie'),
+              Char.char(';')
+            ),
+            Parser.capture(a=>content=a),
+            Char.char('k'),
+            () => Parser.pure(content)
+          )
+        }
+        expect(Parser.parse('a;u;i;e;k', f())).to.deep.equal(
+          ['a', 'u', 'i', 'e']
+        )
+        expect(Parser.parse('a;u;i;ek', f())).to.deep.equal(
+          ['a', 'u', 'i', 'e']
+        )
+        expect(Parser.parse('ak', f())).to.deep.equal(
+          ['a']
+        )
+        expect(() => Parser.parse('k', f())).to.throw(
+          ParserError.ParserFailedError,
+        )
+      })
+    })
+
+    describe('.notFollowedBy', () => {
+      it('notFollowedBy(p)', () => {
+        const f = Parser.pipe(
+          Char.char('a'),
+          (a) => Parser.pipeX(
+            Parser.notFollowedBy(Char.char('k')),
+            () => Parser.pure(a)
+          )
+        )
+        expect(Parser.parse('ab', f())).to.deep.equal(
+          'a'
+        )
+        expect(() => Parser.parse('ak', f())).to.throw(  
+          ParserError.ParserFailedError
+        )
+      })
+    })
+
+    describe('.eof', () => {
+      it('eof', () => {
+        const f = Parser.pipe(
+          Char.string('auie'),
+          a => Parser.pipeX(
+            Parser.eof,
+            () => Parser.pure(a)
+          )
+        )
+        expect(Parser.parse('auie', f())).to.deep.equal(
+          'auie'
+        )
+        expect(() => Parser.parse('auie not finish', f())).to.throw(
+          ParserError.ParserFailedError
+        )
+      })
+    })
+
+
+    describe('.manyTill', () => {
+      it('manyTill', () => {
+        const f = Parser.manyTill(
+          Char.oneOf('auie'),
+          Char.char(':')
+        )
+        expect(Parser.parse('au:ie', f())).to.deep.equal(
+          ['a', 'u']
+        )
+        expect(Parser.parse(':ie', f())).to.deep.equal(
+          []
+        )
+        expect(() => Parser.parse('auie ', f())).to.throw(
+          ParserError.ParserFailedError
+        )
+        expect(() => Parser.parse('auie', f())).to.throw(
+          ParserError.ParserFailedError
+        )
+      })
+    })
+
+    describe('.lookAhead', () => {
+      it('lookAhead', () => {
+        const f = Parser.pipe(
+          Parser.lookAhead(
+            Char.string('auie')
+          ),
+          (content) => Parser.pipeX(
+            Char.anyChar,
+            (a) => Parser.pure(content + a)
+          )
+        )
+        expect(Parser.parse('auie:', f())).to.deep.equal(
+          'auiea'
+        )
+        expect(() => Parser.parse('au:ie ', f())).to.throw(
+          ParserError.ParserFailedError
+        )
+      })
+    })
+
+
 
   })
 

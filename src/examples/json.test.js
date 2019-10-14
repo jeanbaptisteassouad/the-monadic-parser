@@ -91,4 +91,16 @@ describe('Json', () => {
     expect(JSON.parse(str)).to.deep.equal(ans)
     expect(parser_output).to.deep.equal(ans)
   })
+
+  it('rfc4627 : Unicode Char Array', () => {
+    const ans = [
+      '\u1234'
+    ]
+
+    const str = '["\\u1234"]'
+
+    const parser_output = Parser.parse(str, Json.rfc4627())
+
+    expect(parser_output).to.deep.equal(ans)
+  })
 })

@@ -132,7 +132,7 @@ const parse = (str, parser) => {
   )
 }
 
-
+// without consuming any input /////////////////////////////////
 // (() -> Parser a, () -> Parser a) -> (() -> Parser a)
 const _or = (es, p, ...ps) => pipe(
   getReadingHead,
@@ -169,6 +169,7 @@ const ttry = (p) => pipe(
   )
 )
 
+// without consuming any input /////////////////////////////////
 // (() -> Parser a, String) -> (() -> Parser a)
 const label = (p, str) => pipe(
   getReadingHead,
@@ -210,7 +211,7 @@ const many1 = (p) => pipe(
 )
 
 // (Int, () -> Parser a) -> (() -> Parser [a])
-const count = (n, p) => {
+const count = (n, p) => () => {
   if (n <= 0) {
     return pure([])
   } else {
@@ -237,6 +238,7 @@ const between = (open, close, p) => () => {
   )
 }
 
+// without consuming any input /////////////////////////////////
 // (a, () -> Parser a) -> (() -> Parser a)
 const option = (a, p) => pipe(
   getReadingHead,
@@ -256,6 +258,7 @@ const option = (a, p) => pipe(
   )
 )
 
+// without consuming any input /////////////////////////////////
 // (() -> Parser a) -> (() -> Parser ())
 const optional = (p) => pipe(
   option(null, p),
@@ -325,11 +328,18 @@ const sepEndBy1 = (p, sep) => () => {
   )
 }
 
+// does not consume any input /////////////////////////////////
 // (() -> Parser a) -> (() -> Parser ())
-const notFollowedBy = (p) => caseOf(
-  p,
-  (e) => pure(),
-  (a) => fail(a)
+const notFollowedBy = (p) => pipe(
+  getReadingHead,
+  (reading_head) => caseOfX(
+    p,
+    (e) => pipeX(
+      setReadingHead(reading_head),
+      pure
+    ),
+    fail
+  )
 )
 
 // () -> Parser ()
@@ -353,6 +363,7 @@ const manyTill = (p, end) => caseOf(
   () => pure([])
 )
 
+// does not consume any input /////////////////////////////////
 // (() -> Parser a) -> (() -> Parser a)
 const lookAhead = (p) => pipe(
   getReadingHead,
@@ -393,6 +404,7 @@ module.exports = {
   count,
   between,
   option,
+  optional,
   sepBy,
   sepBy1,
   endBy,
