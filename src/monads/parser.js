@@ -122,7 +122,6 @@ const parse = (str, parser) => {
     (msg) => {
       const failed_head = ParserState.getFailedHead(final_state)
       let error_str = `unexpected ${JSON.stringify(str[failed_head])}`
-      console.log(str.slice(failed_head))
       if (msg) {
         error_str = error_str+', expecting '+msg
       }
