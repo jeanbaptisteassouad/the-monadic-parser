@@ -5,7 +5,7 @@ const root_path = '..'
 
 const Either = require(root_path + '/monads/either')
 
-describe('either', () => {
+describe('Either', () => {
   it('pure === right', () => {
     expect(
       Either.pure

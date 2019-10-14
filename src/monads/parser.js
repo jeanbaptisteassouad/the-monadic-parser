@@ -4,6 +4,7 @@ const State = require(root_path + '/monads/state')
 const Either = require(root_path + '/monads/either')
 
 const ParserState = require(root_path + '/parser-state')
+const ParserError = require(root_path + '/parser-error')
 
 //***************//
 // Monadic value //
@@ -125,7 +126,7 @@ const parse = (str, parser) => {
       if (msg) {
         error_str = error_str+', expecting '+msg
       }
-      throw new Error(error_str)
+      throw new ParserError.ParserFailedError(error_str)
     },
     (a) => a
   )
@@ -374,7 +375,7 @@ module.exports = {
   getOneChar,
   consumeOne,
 
-  // monadic function helpers
+  // monadic function creators
   capture,
   pureDot,
 

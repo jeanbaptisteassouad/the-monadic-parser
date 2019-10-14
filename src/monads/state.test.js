@@ -5,7 +5,7 @@ const root_path = '..'
 
 const State = require(root_path + '/monads/state')
 
-describe('state', () => {
+describe('State', () => {
   it('runState(pure(a), s) === [a, s]', () => {
     const a = 'dummy_string'
     const s = 'dummy_state'

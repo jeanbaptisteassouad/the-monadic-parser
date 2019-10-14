@@ -11,7 +11,7 @@ const create = (str) => {
 
   setReadingHead(0, a)
   setString(str, a)
-  setFailedHead(-1, a)
+  setFailedHead(0, a)
 
   return a
 }

@@ -6,7 +6,7 @@ const root_path = '..'
 const Json = require(root_path + '/examples/json')
 const Parser = require(root_path + '/monads/parser')
 
-describe('json', () => {
+describe('Json', () => {
   it('rfc4627 : empty array', () => {
     const ans = []
 

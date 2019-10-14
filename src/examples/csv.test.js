@@ -6,7 +6,7 @@ const root_path = '..'
 const Csv = require(root_path + '/examples/csv')
 const Parser = require(root_path + '/monads/parser')
 
-describe('csv', () => {
+describe('Csv', () => {
   it('rfc4180', () => {
     const ans = [
       ['auie', 'eiua', 'aai', 'eeiu'],
