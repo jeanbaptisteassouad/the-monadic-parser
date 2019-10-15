@@ -226,3 +226,15 @@ const char_parsed = Parser.parse('c', my_parser)
 To create your parser you can use other combinators like 'or', 'sepBy', 'endBy' ...
 
 For more examples you can take a look at the [RFC 4180 csv](src/examples/csv.js) and [RFC 4627 json](scr/examples/json.js) parsers.
+
+## Api
+
+TO DO !!!!!!
+
+## Contribute
+
+For running tests :
+
+```
+yarn test
+```
