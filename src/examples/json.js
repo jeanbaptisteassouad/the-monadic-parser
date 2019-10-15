@@ -5,7 +5,7 @@ const Char = require(root_path + '/char')
 
 // This parser is based on RFC 4627 (https://www.ietf.org/rfc/rfc4627.txt)
 
-// Char -> () -> Parser Char
+// (Char) -> () -> Parser<Char>
 const insignificantWhitespace = (a) => Parser.pipe(
   Char.spaces,
   Char.char(a),
@@ -79,7 +79,7 @@ const char = Parser.or(
 
 const quotationMark = Char.char('"')
 
-// () -> Parser String
+// () -> Parser<String>
 const string = Parser.pipe(
   Parser.between(
     quotationMark,
@@ -93,7 +93,7 @@ const string = Parser.pipe(
 // number //
 //********//
 
-// () -> Parser Number
+// () -> Parser<Number>
 const number = () => {
   let ans
   return Parser.pipeX(
@@ -135,7 +135,7 @@ const frac = () => {
 
 const zero = Char.char('0')
 
-// () -> Parser String
+// () -> Parser<String>
 const int = Parser.or(
   zero,
   () => {
@@ -156,7 +156,7 @@ const plus = Char.char('+')
 // array //
 //*******//
 
-// () -> Parser Array
+// () -> Parser<Array<Value>>
 const array = () => Parser.between(
   beginArray,
   endArray,
@@ -167,7 +167,7 @@ const array = () => Parser.between(
 // object //
 //********//
 
-// () -> Parser Object
+// () -> Parser<Object<String, Value>>
 const member = () => {
   let ans = []
   return Parser.pipeX(
@@ -198,7 +198,7 @@ const object = Parser.pipe(
 // false //
 //*******//
 
-// () -> Parser Bool
+// () -> Parser<Bool>
 const falseVal = Parser.ttry(
   Parser.pipe(
     Char.string('false'),
@@ -210,7 +210,7 @@ const falseVal = Parser.ttry(
 // true //
 //******//
 
-// () -> Parser Bool
+// () -> Parser<Bool>
 const trueVal = Parser.ttry(
   Parser.pipe(
     Char.string('true'),
@@ -222,7 +222,7 @@ const trueVal = Parser.ttry(
 // null //
 //******//
 
-// () -> Parser Null
+// () -> Parser<Null>
 const nullVal = Parser.ttry(
   Parser.pipe(
     Char.string('null'),
@@ -234,7 +234,7 @@ const nullVal = Parser.ttry(
 // value //
 //*******//
 
-// () -> Parser Value
+// () -> Parser<Value>
 const value = Parser.or(
   falseVal,
   nullVal,
@@ -249,7 +249,7 @@ const value = Parser.or(
 // json //
 //******//
 
-// () -> Parser Js
+// () -> Parser<Js>
 const json = Parser.or(object, array)
 
 

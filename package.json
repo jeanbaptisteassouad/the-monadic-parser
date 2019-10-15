@@ -1,7 +1,7 @@
 {
   "name": "theMonadicParser",
   "version": "1.0.0",
-  "description": "TO DO !!!!!",
+  "description": "theMonadicParser is a parser library that lets you create and compose parsers easily.",
   "main": "index.js",
   "repository": {
     "type": "git",

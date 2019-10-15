@@ -6,7 +6,7 @@ const Char = require(root_path + '/char')
 // This parser is based on RFC 4180 (https://tools.ietf.org/html/rfc4180)
 
 const csv = (cell_char) => {
-  // () -> Parser Char
+  // () -> Parser<Char>
   const quotedChar = Parser.or(
     Char.noneOf('"'),
     Parser.ttry(
@@ -17,7 +17,7 @@ const csv = (cell_char) => {
     )
   )
 
-  // () -> Parser String
+  // () -> Parser<String>
   const quotedCell = () => {
     let content
     return Parser.pipeX(
@@ -29,22 +29,22 @@ const csv = (cell_char) => {
     )
   }
 
-  // () -> Parser String
+  // () -> Parser<String>
   const notQuotedCell = Parser.pipe(
     Parser.many(Char.noneOf(cell_char+'\n\r')),
     Parser.pureDot(a => a.join(''))
   )
 
-  // () -> Parser String
+  // () -> Parser<String>
   const cell = Parser.or(quotedCell, notQuotedCell)
 
-  // () -> Parser Char
+  // () -> Parser<Char>
   const cellSeparator = Char.char(cell_char)
 
-  // () -> Parser [String]
+  // () -> Parser<[String]>
   const line = Parser.sepBy(cell, cellSeparator)
 
-  // () -> Parser String
+  // () -> Parser<String>
   const lineSeparator = Parser.or(
     Parser.ttry(Char.string('\n\r')),
     Parser.ttry(Char.string('\r\n')),
@@ -52,7 +52,7 @@ const csv = (cell_char) => {
     Char.string('\r'),
   )
 
-  // () -> Parser [[String]]
+  // () -> Parser<[[String]]>
   const csv = Parser.sepBy(line, lineSeparator)
   
   return csv

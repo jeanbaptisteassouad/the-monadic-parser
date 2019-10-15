@@ -2,7 +2,7 @@ const root_path = '.'
 
 const Parser = require(root_path + '/monads/parser')
 
-// (Char -> Bool) -> () -> Parser Char
+// ((Char) -> Bool) -> () -> Parser<Char>
 const satisfy = (f) => Parser.pipe(
   Parser.getOneChar,
   (a) => {
@@ -17,16 +17,16 @@ const satisfy = (f) => Parser.pipe(
   }
 )
 
-// Char -> () -> Parser Char
+// Char -> () -> Parser<Char>
 const char = (c) => Parser.label(
   satisfy(a => a === c),
   JSON.stringify(c)
 )
 
-// () -> Parser Char
+// () -> Parser<Char>
 const anyChar = satisfy(() => true)
 
-// String -> () -> Parser String
+// String -> () -> Parser<String>
 const _string = (fullstring, str) => {
   if (str.length === 0) {
     return () => Parser.pure('')
@@ -65,13 +65,13 @@ const isInCharList = (char, list_char) => {
 const formatListChar = (list_char) =>
   JSON.stringify(list_char.split(''))
 
-// String -> () -> Parser Char
+// String -> () -> Parser<Char>
 const oneOf = (list_char) => Parser.label(
   satisfy(a => isInCharList(a, list_char)),
   'one of '+formatListChar(list_char)
 )
 
-// String -> () -> Parser Char
+// String -> () -> Parser<Char>
 const noneOf = (list_char) => Parser.label(
   satisfy(a => isInCharList(a, list_char) === false),
   'none of '+formatListChar(list_char)
@@ -109,19 +109,19 @@ const no_break_space_char = '\u00a0'
 spaces_char.push(no_break_space_char)
 
 
-// () -> Parser Char
+// () -> Parser<Char>
 const space = Parser.label(
   satisfy(a => spaces_char.includes(a)),
   'a space'
 )
 
-// () -> Parser [Char]
+// () -> Parser<[Char]>
 const spaces = Parser.label(
   Parser.many(space),
   'spaces'
 )
 
-// () -> Parser Char
+// () -> Parser<Char>
 const newline = Parser.label(
   satisfy(a => a === line_feed_char),
   'a newline'
@@ -132,25 +132,25 @@ const crlf = Parser.label(
   'a crlf'
 )
 
-// () -> Parser Char
+// () -> Parser<Char>
 const endOfLine = Parser.label(
   Parser.or(newline, crlf),
   'an end of line'
 )
 
-// () -> Parser Char
+// () -> Parser<Char>
 const tab = Parser.label(
   satisfy(a => a === character_tabulation_char),
   'a tab'
 )
 
-// () -> Parser Char
+// () -> Parser<Char>
 const upper = Parser.label(
   satisfy(a => a.toUpperCase() === a),
   'an upper case character'
 )
 
-// () -> Parser Char
+// () -> Parser<Char>
 const lower = Parser.label(
   satisfy(a => a.toLowerCase() === a),
   'a lower case character'
@@ -159,21 +159,21 @@ const lower = Parser.label(
 // const alphaNum
 // const letter
 
-// () -> Parser Char
+// () -> Parser<Char>
 const digit_regex = new RegExp(/[0-9]/)
 const digit = Parser.label(
   satisfy(a => a.match(digit_regex) !== null),
   'a digit'
 )
 
-// () -> Parser Char
+// () -> Parser<Char>
 const hex_digit_regex = new RegExp(/[0-9a-fA-F]/)
 const hexDigit = Parser.label(
   satisfy(a => a.match(hex_digit_regex) !== null),
   'a hex digit'
 )
 
-// () -> Parser Char
+// () -> Parser<Char>
 const oct_digit_regex = new RegExp(/[0-7]/)
 const octDigit = Parser.label(
   satisfy(a => a.match(oct_digit_regex) !== null),

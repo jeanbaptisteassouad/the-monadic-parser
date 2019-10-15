@@ -7,9 +7,9 @@ const create = (name) => {
 
   // object -> a
   const get = (a) => a[key]
-  // (a, object) -> ()
+  // (a, object) -> Undefined
   const set = (b, a) => {a[key] = b}
-  // (a -> a, object) -> ()
+  // (a -> a, object) -> Undefined
   const update = (f, a) => set(f(get(a)), a)
   return [get, set, update]
 }

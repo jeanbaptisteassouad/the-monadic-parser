@@ -10,11 +10,11 @@ const ParserError = require(root_path + '/parser-error')
 // Monadic value //
 //***************//
 
-// Parser a === State s (Either e a)
-// a -> Parser a
+// Parser<a> === State<s, Either<e, a>>
+// (a) -> Parser<a>
 const pure = (a) => State.pure(Either.pure(a))
 
-// e -> Parser a
+// (e) -> Parser<a>
 const fail = (e) => State.pure(Either.left(e))
 
 
@@ -22,19 +22,19 @@ const fail = (e) => State.pure(Either.left(e))
 // Monadic Functions //
 //*******************//
 
-// () -> Parser s
+// () -> Parser<s>
 const get = () => State.then(State.get(), pure)
 
-// (a -> b) -> (a -> Parser b)
+// ((a) -> b) -> ((a) -> Parser<b>)
 const pureDot = (f) => (a) => pure(f(a))
 
-// (a -> ()) -> a -> Parser ()
+// ((a) -> b) -> ((a) -> Parser<Undefined>)
 const capture = (f) => (a) => {
   f(a)
   return pure(undefined)
 }
 
-// (a -> Parser b, e -> Parser c, b -> Parser c) -> (a -> Parser c)
+// ((a) -> Parser<b>, (e) -> Parser<c>, (b) -> Parser<c>) -> ((a) -> Parser<c>)
 const caseOf = (a_to_parser_b, leftCallback, rightCallback) => (a) =>
   State.then(a_to_parser_b(a), (either_b) =>
     Either.caseOf(either_b, leftCallback, rightCallback)
@@ -42,8 +42,8 @@ const caseOf = (a_to_parser_b, leftCallback, rightCallback) => (a) =>
 const caseOfX = (a_to_parser_b, leftCallback, rightCallback) =>
   caseOf(a_to_parser_b, leftCallback, rightCallback)()
 
-// (Parser a, a -> Parser b) -> Parser b
-// (State s (Either e a), a -> State s (Either e b)) -> State s (Either e b)
+// (Parser<a>, (a) -> Parser<b>) -> Parser<b>
+// (State<s, Either<e, a>>, (a) -> State<s, Either<e, b>>) -> State<s, Either<e, b>
 const then = (state_either_a, a_to_state_either_b) =>
   State.then(state_either_a, (either_a) =>
     Either.caseOf(
@@ -53,7 +53,7 @@ const then = (state_either_a, a_to_state_either_b) =>
     )
   )
 
-// (a -> Parser b, b -> Parser c) -> (a -> Parser c)
+// ((a) -> Parser<b>, (b) -> Parser<c>) -> (a) -> Parser<c>
 const _pipe = (a_to_parser_b, b_to_parser_c) => (a) => {
   const parser_b = a_to_parser_b(a)
   return then(parser_b, b_to_parser_c)
@@ -63,41 +63,41 @@ const pipe = (...args) => args.reduce((acc, val) => _pipe(acc, val))
 const pipeX = (...args) => pipe(...args)()
 
 
-// () -> Parser Int
+// () -> Parser<Int>
 const getReadingHead = pipe(
   get,
   pureDot(ParserState.getReadingHead)
 )
 
-// Int -> () -> Parser ()
+// Int -> () -> Parser<Undefined>
 const setReadingHead = (a) => pipe(
   get,
   pureDot(s=>ParserState.setReadingHead(a, s))
 )
 
-// (Int -> Int) -> () -> Parser ()
+// ((Int) -> Int) -> () -> Parser<Undefined>
 const updateReadingHead = (f) => pipe(
   get,
   pureDot(s=>ParserState.updateReadingHead(f, s))
 )
 
-// (Int) -> () -> Parser ()
+// (Int) -> () -> Parser<Undefined>
 const setFailedHead = (a) => pipe(
   get,
   pureDot(s=>ParserState.setFailedHead(a, s))
 )
 
-// () -> Parser ()
+// () -> Parser<Undefined>
 const consumeOne = updateReadingHead(a=>a+1)
 
 
-// () -> Parser String
+// () -> Parser<String>
 const getString = pipe(
   get,
   pureDot(ParserState.getString)
 )
 
-// () -> Parser Char
+// () -> Parser<Char>
 const getOneChar = () => {
   let str
   return pipeX(
@@ -116,7 +116,7 @@ const getOneChar = () => {
   )
 }
 
-// (String, Parser a) -> a
+// (String, Parser<a>) -> a
 const parse = (str, parser) => {
   const [either_ans, final_state] = State.runState(parser, ParserState.create(str))
   return Either.caseOf(either_ans,
@@ -133,7 +133,7 @@ const parse = (str, parser) => {
 }
 
 // without consuming any input /////////////////////////////////
-// (() -> Parser a, () -> Parser a) -> (() -> Parser a)
+// (() -> Parser<a>, () -> Parser<a>) -> (() -> Parser<a>)
 const _or = (es, p, ...ps) => pipe(
   getReadingHead,
   (reading_head) => caseOfX(
@@ -156,7 +156,7 @@ const _or = (es, p, ...ps) => pipe(
 )
 const or = (p, ...ps) => _or([], p, ...ps)
 
-// (() -> Parser a) -> (() -> Parser a)
+// (() -> Parser<a>) -> (() -> Parser<a>)
 const ttry = (p) => pipe(
   getReadingHead,
   (reading_head) => caseOfX(
@@ -170,7 +170,7 @@ const ttry = (p) => pipe(
 )
 
 // without consuming any input /////////////////////////////////
-// (() -> Parser a, String) -> (() -> Parser a)
+// (() -> Parser<a>, String) -> (() -> Parser<a>)
 const label = (p, str) => pipe(
   getReadingHead,
   (reading_head) => caseOfX(
@@ -190,7 +190,7 @@ const label = (p, str) => pipe(
 )
 
 
-// (() -> Parser a) -> (() -> Parser [a])
+// (() -> Parser<a>) -> (() -> Parser<[a]>)
 const _many = (array, p) => {
   return caseOf(
     p,
@@ -210,7 +210,7 @@ const many1 = (p) => pipe(
   (a) => _many([a], p)(),
 )
 
-// (Int, () -> Parser a) -> (() -> Parser [a])
+// (Int, () -> Parser<a>) -> (() -> Parser<[a]>)
 const count = (n, p) => () => {
   if (n <= 0) {
     return pure([])
@@ -226,7 +226,7 @@ const count = (n, p) => () => {
   }
 }
 
-// (() -> Parser open, () -> Parser close, () -> Parser a) -> (() -> Parser a)
+// (() -> Parser<open>, () -> Parser<close>, () -> Parser<a>) -> (() -> Parser<a>)
 const between = (open, close, p) => () => {
   let ans
   return pipeX(
@@ -239,7 +239,7 @@ const between = (open, close, p) => () => {
 }
 
 // without consuming any input /////////////////////////////////
-// (a, () -> Parser a) -> (() -> Parser a)
+// (a, () -> Parser<a>) -> (() -> Parser<a>)
 const option = (a, p) => pipe(
   getReadingHead,
   (reading_head) => caseOfX(
@@ -259,13 +259,13 @@ const option = (a, p) => pipe(
 )
 
 // without consuming any input /////////////////////////////////
-// (() -> Parser a) -> (() -> Parser ())
+// (() -> Parser<a>) -> (() -> Parser<Undefined>)
 const optional = (p) => pipe(
   option(null, p),
   () => pure()
 )
 
-// (() -> Parser a, () -> Parser sep) -> (() -> Parser [a])
+// (() -> Parser<a>, () -> Parser<sep>) -> (() -> Parser<[a]>)
 const _sepBy = (array, p, sep) => {
   return caseOf(
     ttry(sep),
@@ -295,7 +295,7 @@ const sepBy1 = (p, sep) => {
   )
 }
 
-// (() -> Parser a, () -> Parser sep) -> (() -> Parser a)
+// (() -> Parser<a>, () -> Parser<sep>) -> (() -> Parser<a>)
 const _endBy = (p, sep) => () => {
   let ans
   return pipeX(
@@ -308,7 +308,7 @@ const _endBy = (p, sep) => () => {
 const endBy = (p, sep) => many(_endBy(p, sep))
 const endBy1 = (p, sep) => many1(_endBy(p, sep))
 
-// (() -> Parser a, () -> Parser sep) -> (() -> Parser a)
+// (() -> Parser<a>, () -> Parser<sep>) -> (() -> Parser<a>)
 const sepEndBy = (p, sep) => () => {
   let ans
   return pipeX(
@@ -329,7 +329,7 @@ const sepEndBy1 = (p, sep) => () => {
 }
 
 // does not consume any input /////////////////////////////////
-// (() -> Parser a) -> (() -> Parser ())
+// (() -> Parser<a>) -> (() -> Parser<Undefined>)
 const notFollowedBy = (p) => pipe(
   getReadingHead,
   (reading_head) => caseOfX(
@@ -342,7 +342,7 @@ const notFollowedBy = (p) => pipe(
   )
 )
 
-// () -> Parser ()
+// () -> Parser<Undefined>
 const eof = notFollowedBy(
   pipe(
     getOneChar,
@@ -350,7 +350,7 @@ const eof = notFollowedBy(
   )
 )
 
-// (() -> Parser a, () -> Parser end) -> (() -> Parser [a])
+// (() -> Parser<a>, () -> Parser<end>) -> (() -> Parser<[a]>)
 const manyTill = (p, end) => caseOf(
   end,
   (e) => pipeX(
@@ -364,7 +364,7 @@ const manyTill = (p, end) => caseOf(
 )
 
 // does not consume any input /////////////////////////////////
-// (() -> Parser a) -> (() -> Parser a)
+// (() -> Parser<a>) -> (() -> Parser<a>)
 const lookAhead = (p) => pipe(
   getReadingHead,
   (reading_head) => caseOfX(

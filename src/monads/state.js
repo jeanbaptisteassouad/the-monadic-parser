@@ -13,19 +13,19 @@ const state = (s_to_a_s) => {
   return a
 }
 
-// (State s a, s) -> [a, s]
+// (State<s, a>, s) -> [a, s]
 const runState = (state, s) => {
   return getF(state)(s)
 }
 
-// a -> State s a
+// a -> State<s, a>
 const pure = (a) => state((s) => [a, s])
-// () -> State s s
+// () -> State<s, s>
 const get = () => state((s) => [s, s])
-// s -> State s ()
+// s -> State<s, Undefined>
 const set = (a) => state((s) => [undefined, a])
 
-// State s a -> (a -> State s b) -> State s b
+// State<s, a> -> (a -> State<s, b>) -> State<s, b>
 const then = (state_a, a_to_state_b) => {
   return state((s) => {
     const [a, s_prime] = runState(state_a, s)
@@ -34,7 +34,7 @@ const then = (state_a, a_to_state_b) => {
   })
 }
 
-// (a -> b) -> (State s a -> State s b)
+// (a -> b) -> (State<s, a> -> State<s, b>)
 const map = (a_to_b, state_a) => {
   return state((s) => {
     const [a, s_prime] = runState(state_a, s)
@@ -42,12 +42,12 @@ const map = (a_to_b, state_a) => {
   })
 }
 
-// State s a -> a
+// State<s, a> -> a
 const evalState = (state_a, s) => {
   return runState(state_a, s)[0]
 }
 
-// State s a -> s
+// State<s, a> -> s
 const execState = (state_a, s) => {
   return runState(state_a, s)[1]
 }
