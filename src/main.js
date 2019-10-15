@@ -1,9 +1,6 @@
 const root_path = '.'
 
-const Parser = require(root_path + '/monads/parser')
-const Char = require(root_path + '/char')
-const Csv = require(root_path + '/examples/csv')
-const Json = require(root_path + '/examples/json')
+const Parser = require(root_path + '/index')
 
 const json_str = JSON.stringify([
   false,
@@ -39,5 +36,5 @@ const json_str = JSON.stringify([
 ])
 
 console.log(json_str)
-console.log(Parser.parse(json_str, Json.rfc4627()))
+console.log(Parser.parse(json_str, Parser.Json.rfc4627()))
 

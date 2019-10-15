@@ -1,18 +1,18 @@
 {
   "name": "theMonadicParser",
-  "version": "0.0.1",
-  "description": "",
-  "main": "main.js",
+  "version": "1.0.0",
+  "description": "TO DO !!!!!",
+  "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git+.git"
+    "url": "https://github.com/jeanbaptisteassouad/theMonadicParser.git"
   },
-  "author": "Jean-Baptiste Assouad",
+  "author": "Jean-Baptiste Assouad <jean.baptiste@assouad.com>",
   "license": "MIT",
   "bugs": {
-    "url": "/issues"
+    "url": "https://github.com/jeanbaptisteassouad/theMonadicParser/issues"
   },
-  "homepage": "#readme",
+  "homepage": "https://github.com/jeanbaptisteassouad/theMonadicParser",
   "scripts": {
     "start": "node ./src/main.js",
     "test": "mocha \"./src/**/*.test.js\""
