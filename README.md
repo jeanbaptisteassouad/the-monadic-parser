@@ -4,6 +4,10 @@
 
 This library is inspired by the Haskell parser package [Parsec](http://hackage.haskell.org/package/parsec).
 
+## Install
+
+TO DO !!!!!!
+
 ## Type annotations
 
 We are going to use a type annotation inspired by flow.js and typescript.
@@ -27,9 +31,6 @@ const strToArray = (spliter, a) => a.split(spliter)
 All the types will start with a capital letter (ex : String, Array\<Number\>, ...)
 except for the type variables (ex : a, b, ...).
 
-## Install
-
-TO DO !!!!!!
 
 ## Getting Started
 
@@ -440,6 +441,11 @@ lookAhead,
 
 
 
+
+
+
+
+
 ### Char.satisfy :: ((Char) -> Bool) -> (() -> Parser\<Char\>)
 
 Satisfy parse a character that satisfies its condition or fail without consuming any input.
@@ -500,7 +506,7 @@ Parser.Char.endOfLine === Parser.or(Parser.Char.newline, Parser.Char.crlf)
 
 tab succedd if teh parsed character is a tabulation character (\\t)
 
-### Char.upper :: () -> Parser\<Char\>
+### Char.upper :: () -> Parser\<Char\>
 
 This parser will parse any upper characters (i.e. any character a that satisfy a.toUpperCase() === a).
 
@@ -524,7 +530,7 @@ This parser will parse any octal digit characters (same as regex /[0-7]/).
 
 This parser will only parse character equal to its argument.
 
-### Char.anyChar :: () -> Parser\<Char\>
+### Char.anyChar :: () -> Parser\<Char\>
 
 This parser will successfully parse any character.
 
