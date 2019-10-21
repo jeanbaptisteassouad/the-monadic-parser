@@ -478,7 +478,7 @@ const Parser = require('theMonadicParser')
 Parser.Char.spaces === Parser.many(Parser.Char.space)
 ```
 
-### Char.newline :: () -> Parser\<Char\>
+### Char.newline :: () -> Parser\<Char\>
 
 newline succeed if the parsed character is a line feed (\\n).
 
