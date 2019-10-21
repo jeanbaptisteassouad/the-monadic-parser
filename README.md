@@ -231,18 +231,24 @@ To create your parser you can use other combinators like 'or', 'sepBy', 'endBy' 
 
 For more examples you can have a look at the [RFC 4180 csv](src/examples/csv.js) and [RFC 4627 json](scr/examples/json.js) parsers.
 
-## Api
 
-TO DO !!!!!!
+
+## Api
 
 ### parse :: (String, Parser\<a\>) -> a
 
 Parse lets you run a parser with a given string.
 
+```js
+const Parser = require('theMonadicParser')
+
+// any_parser :: Parser<Array<String>>
+Parser.parse('any_string', any_parser) // :: Array<String>
+```
 
 ### pure :: (a) -> Parser\<a\>
 
-*Pure(a)* lets you create a parser that contains *a* and do nothing.
+__Pure(a)__ lets you create a parser that contains __a__ and do nothing.
 
 ```js
 const Parser = require('theMonadicParser')
@@ -256,8 +262,110 @@ console.log(Parser.parse('any_string', p)) // 'return_val'
 ### fail :: String -> Parser\<a\>
 
 
-*Fail(error_string)* lets you create a parser that will always fail with the error message *error_string*. The fail function return a value of type *Parser<a>* but you will never be able to extract a *a* from it because the parser will fail.
+__Fail(error_string)__ lets you create a parser that will always fail with the error message __error_string__. The fail function return a value of type __Parser\<a\>__ but you will never be able to extract a __a__ from it because the parser will fail.
 
+```js
+const Parser = require('theMonadicParser')
+
+// p :: Parser<a>
+const p = Parser.fail('my error message')
+
+console.log(Parser.parse('any_string', p)) // will throw an error with message : unexpected "a", expecting my error message
+```
+
+### getOneChar :: () -> Parser\<Char\>
+
+__getOneChar()__ lets you create a parser that will read one char at the current reading head position, this parser will not consume any input.
+
+```js
+const Parser = require('theMonadicParser')
+
+// p :: Parser<Char>
+const p = Parser.getOneChar()
+
+console.log(Parser.parse('any_string', p)) // 'a'
+```
+
+### consumeOne :: () -> Parser\<Undefined\>
+
+__consumeOne()__ lets you create a parser that consumes one character of the input, moving the reading head forward.
+
+
+### pipe :: ((a) -> Parser\<b\>, (b) -> Parser\<c\>, ..., (y) -> Parser\<z\>) -> (a) -> Parser\<z\>
+
+Pipe lets you chain monadic functions together. If a parser failed in the chain, the remaining parsers are not executed.
+
+```js
+const Parser = require('theMonadicParser')
+
+// pCreator :: () -> Parser<Char>
+const pCreator = Parser.pipe(
+  Parser.consumeOne, // :: () -> Parser<Undefined>
+  Parser.getOneChar, // :: () -> Parser<Char>
+)
+
+// p :: Parser<Char>
+const p = pCreator()
+
+console.log(Parser.parse('any_string', p)) // 'n'
+
+// pipeX = (...args) => pipe(...args)()
+// q :: Parser<Char>
+const q = Parser.pipeX(Parser.consumeOne, Parser.getOneChar)
+
+console.log(Parser.parse('any_string', q)) // 'n'
+```
+
+### capture :: ((a) -> b) -> ((a) -> Parser\<Undefined\>)
+
+Capture lets you capture the value returned by a parser inside a monadic function chain.
+
+```js
+const Parser = require('theMonadicParser')
+
+// parseTheTwoFirstChar :: () -> Parser<String>
+const parseTheTwoFirstChar = () => {
+  let first_char
+  return Parser.pipeX(
+    Parser.getOneChar, // :: () -> Parser<Char>
+    Parser.capture(a=>first_char=a), // :: Char -> Parser<Undefined>
+    Parser.consumeOne, // :: () -> Parser<Undefined>
+    Parser.getOneChar, // :: () -> Parser<Char>
+    (a) => Parser.pure(first_char + a) // :: Char -> Parser<String>
+  )
+}
+
+// p :: Parser<String>
+const p = parseTheTwoFirstChar()
+
+console.log(Parser.parse('any_string', p)) // 'an'
+```
+
+### pureDot :: ((a) -> b) -> ((a) -> Parser\<b\>)
+
+pureDot lets you transform a regular function __a -> b__ to a monadic function __a -> Parser\<b\>__.
+
+```js
+// Let's rewrite the previous example.
+const Parser = require('theMonadicParser')
+
+// parseTheTwoFirstChar :: () -> Parser<String>
+const parseTheTwoFirstChar = () => {
+  let first_char
+  return Parser.pipeX(
+    Parser.getOneChar, // :: () -> Parser<Char>
+    Parser.capture(a=>first_char=a), // :: Char -> Parser<Undefined>
+    Parser.consumeOne, // :: () -> Parser<Undefined>
+    Parser.getOneChar, // :: () -> Parser<Char>
+    Parser.pureDot(a=>first_char+a) // :: Char -> Parser<String>
+  )
+}
+
+// p :: Parser<String>
+const p = parseTheTwoFirstChar()
+
+console.log(Parser.parse('any_string', p)) // 'an'
+```
 
 ## Contribute
 
