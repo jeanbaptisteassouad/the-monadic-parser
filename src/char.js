@@ -27,9 +27,9 @@ const char = (c) => Parser.label(
 const anyChar = satisfy(() => true)
 
 // String -> () -> Parser<String>
-const _string = (fullstring, str) => {
+const _string = (fullstring, str) => () => {
   if (str.length === 0) {
-    return () => Parser.pure('')
+    return Parser.pure('')
   }
   
   const head = str[0]
@@ -48,7 +48,7 @@ const _string = (fullstring, str) => {
       () => Parser.pure(ans),
     ),
     error_msg
-  )
+  )()
 }
 const string = (str) => _string(str, str)
 

@@ -193,7 +193,7 @@ const label = (p, str) => pipe(
 // (() -> Parser<a>) -> (() -> Parser<[a]>)
 const _many = (array, p) => {
   return caseOf(
-    p,
+    ttry(p),
     (e) => pure(array),
     (a) => {
       array.push(a)

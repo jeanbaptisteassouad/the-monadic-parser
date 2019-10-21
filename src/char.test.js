@@ -24,5 +24,18 @@ describe('Char', () => {
         () => Parser.parse(str, Char.satisfy(x => x === 'b')())
       ).to.throw(ParserError.ParserFailedError)
     })
+
+    it('multiple call of p = string("auie") should give the same result', () => {
+      const str = 'auie'
+      const p = Char.string('auie')
+
+      expect(
+        Parser.parse(str, p())
+      ).to.equal('auie')
+
+      expect(
+        Parser.parse(str, p())
+      ).to.equal('auie')
+    })
   })
 })

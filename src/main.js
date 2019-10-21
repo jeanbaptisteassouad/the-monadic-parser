@@ -1,6 +1,7 @@
 const root_path = '.'
 
 const Parser = require(root_path + '/index')
+const Char = require(root_path + '/char')
 
 const json_str = JSON.stringify([
   false,
@@ -38,16 +39,22 @@ const json_str = JSON.stringify([
 console.log(json_str)
 console.log(Parser.parse(json_str, Parser.Json.rfc4627()))
 
+const p = () => {
+  let ans = ''
+  return Parser.pipeX(
+    Parser.many(Char.string('auie')),
+    Parser.capture(a=>{
+      console.log(a)
+      ans+=a.join('')
+    }),
+    Char.anyChar,
+    Parser.pureDot(a=>ans+a)
+  )
+}
 
-// parseAAAorA :: () -> Parser<String>
-const parseAAAorA = Parser.or(
-  Parser.Char.string('aaa'), // :: () -> Parser<String>
-  Parser.Char.char('a') // :: () -> Parser<String>
-)
+console.log(Parser.parse('auieg', p()))
 
-// p :: Parser<String>
-const p = parseAAAorA()
 
-console.log(Parser.parse('aaa_any_string', p)) // 'aaa'
-console.log(Parser.parse('a_any_string', p)) // will throw : unexpected "a", expecting "aaa"
+
+
 

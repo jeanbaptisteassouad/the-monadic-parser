@@ -443,9 +443,16 @@ console.log(Parser.parse('a_any_string', p)) // 'a'
 console.log(Parser.parse('b_any_string', p)) // will throw : unexpected "b", expecting "aaa" or "a"
 ```
 
-label,
+### label :: (() -> Parser\<a\>, String) -> (() -> Parser\<a\>)
 
-many,
+__label(p, error_str)__ lets you change the error message by __error_str__ if __p__ fails without consuming any input.
+
+
+
+### many :: (() -> Parser\<a\>) -> (() -> Parser\<Array\<a\>\>)
+
+
+
 many1,
 manyTill,
 count,

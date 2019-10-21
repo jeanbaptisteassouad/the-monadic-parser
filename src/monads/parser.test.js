@@ -320,7 +320,21 @@ describe('Parser', () => {
         expect(Parser.parse('str', f())).to.deep.equal(
           []
         )
+      })
 
+      it('should not consume input when trying a parser that fails with consuming input', () => {
+        const str = 'auieauig'
+        const f = () => {
+          let ans = ''
+          return Parser.pipeX(
+            Parser.many(Char.string('auie')),
+            Parser.capture(a=>ans+=a.join('')),
+            Char.anyChar,
+            Parser.pureDot(a=>ans+a)
+          )
+        }
+
+        expect(Parser.parse(str, f())).to.deep.equal('auiea')
       })
     })
 
@@ -339,6 +353,21 @@ describe('Parser', () => {
           ParserError.ParserFailedError,
         )
 
+      })
+
+      it('should not consume input when trying a parser that fails with consuming input', () => {
+        const str = 'auieauig'
+        const f = () => {
+          let ans = ''
+          return Parser.pipeX(
+            Parser.many1(Char.string('auie')),
+            Parser.capture(a=>ans+=a.join('')),
+            Char.anyChar,
+            Parser.pureDot(a=>ans+a)
+          )
+        }
+
+        expect(Parser.parse(str, f())).to.deep.equal('auiea')
       })
     })
 
