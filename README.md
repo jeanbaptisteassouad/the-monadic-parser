@@ -435,6 +435,11 @@ lookAhead,
 
 
 
+
+
+
+
+
 ### Char.satisfy :: ((Char) -> Bool) -> (() -> Parser\<Char\>)
 
 Satisfy parse a character that satisfies its condition or fail without consuming any input.
@@ -445,32 +450,86 @@ String parse the given string, it can fail with consuming some input. If you do 
 
 ### Char.oneOf :: (String) -> (() -> Parser\<Char\>)
 
-oneOf succeed if the parsed chararcter is included in its string argument.
+oneOf succeed if the parsed character is included in its string argument.
 
 
 ### Char.noneOf :: (String) -> (() -> Parser\<Char\>)
 
-noneOf succeed if the parsed chararcter is not included in its string argument.
+noneOf succeed if the parsed character is not included in its string argument.
 
 
-spaces,
-space,
+### Char.space :: () -> Parser\<Char\>
 
-### newline :: () -> Parser\<Char\>
+This parser succeed if the parsed character is one of the following character :
+- a character tabulation (\\t)
+- a line feed (\\n)
+- a line tabulation (\\u000b)
+- a form feed (\\f)
+- a carriage return (\\r)
+- a space (\\u0020)
+- a next line (\\u0085)
+- a no break space (\\u00a0)
+
+### Char.spaces :: () -> Parser\<Array\<Char\>\>
+
+```js
+const Parser = require('theMonadicParser')
+
+Parser.Char.spaces === Parser.many(Parser.Char.space)
+```
+
+### Char.newline :: () -> Parser\<Char\>
 
 newline succeed if the parsed character is a line feed (\\n).
 
-crlf,
-endOfLine,
-tab,
-upper,
-lower,
 
-digit,
-hexDigit,
-octDigit,
-char,
-anyChar,
+### Char.crlf :: () -> Parser\<Char\>
+
+crlf succeed if the parsed character is a carriage return immediately followed by a line feed character. This parser always failed without consuming any input.
+
+
+### Char.endOfLine :: () -> Parser\<Char\>
+
+```js
+const Parser = require('theMonadicParser')
+
+Parser.Char.endOfLine === Parser.or(Parser.Char.newline, Parser.Char.crlf)
+```
+
+### Char.tab :: () -> Parser\<Char\>
+
+tab succedd if teh parsed character is a tabulation character (\\t)
+
+### Char.upper :: () -> Parser\<Char\>
+
+This parser will parse any upper characters (i.e. any character a that satisfy a.toUpperCase() === a).
+
+### Char.lower :: () -> Parser\<Char\>
+
+This parser will parse any lower characters (i.e. any character a that satisfy a.toLowerCase() === a).
+
+### Char.digit :: () -> Parser\<Char\>
+
+This parser will parse any digit characters (same as regex /[0-9]/).
+
+### Char.hexDigit :: () -> Parser\<Char\>
+
+This parser will parse any hexadecimal digit characters (same as regex /[0-9a-fA-F]/).
+
+### Char.octDigit :: () -> Parser\<Char\>
+
+This parser will parse any octal digit characters (same as regex /[0-7]/).
+
+### Char.char :: (Char) -> (() -> Parser\<Char\>)
+
+This parser will only parse character equal to its argument.
+
+### Char.anyChar :: () -> Parser\<Char\>
+
+This parser will successfully parse any character.
+
+
+
 
 
 
