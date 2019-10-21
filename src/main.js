@@ -38,3 +38,16 @@ const json_str = JSON.stringify([
 console.log(json_str)
 console.log(Parser.parse(json_str, Parser.Json.rfc4627()))
 
+
+// parseAAAorA :: () -> Parser<String>
+const parseAAAorA = Parser.or(
+  Parser.Char.string('aaa'), // :: () -> Parser<String>
+  Parser.Char.char('a') // :: () -> Parser<String>
+)
+
+// p :: Parser<String>
+const p = parseAAAorA()
+
+console.log(Parser.parse('aaa_any_string', p)) // 'aaa'
+console.log(Parser.parse('a_any_string', p)) // will throw : unexpected "a", expecting "aaa"
+

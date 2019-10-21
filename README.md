@@ -407,30 +407,63 @@ const parseBorA = Parser.or(
 )
 ```
 
+### ttry :: (() -> Parser/<a/>) -> (() -> Parser/<a/>)
 
+__Ttry(p)__ behaves like __p__ except that if __p__ fails with consuming some input, __ttry(p)__ will fail without consuming any input. Ttry function lets you try a parser and if it fails pretends that it didn’t consume any input.
 
+```js
+const Parser = require('theMonadicParser')
 
+// badParseAAAorA :: () -> Parser<String>
+const badParseAAAorA = Parser.or(
+  Parser.Char.string('aaa'), // :: () -> Parser<String>
+  Parser.Char.char('a') // :: () -> Parser<String>
+)
 
-ttry,
+// p :: Parser<String>
+const p = badParseAAAorA()
+
+console.log(Parser.parse('aaa_any_string', p)) // 'aaa'
+console.log(Parser.parse('a_any_string', p)) // will throw : unexpected "_", expecting "aaa"
+
+// Parser.Char.string can fail with consuming some input.
+// To have the correct behaviour, we need to not consume any input when Parser.Char.string fails.
+// We are going to use Parser.ttry function.
+// goodParseAAAorA :: () -> Parser<String>
+const goodParseAAAorA = Parser.or(
+  Parser.ttry(Parser.Char.string('aaa')), // :: () -> Parser<String>
+  Parser.Char.char('a') // :: () -> Parser<String>
+)
+
+// q :: Parser<String>
+const q = goodParseAAAorA()
+
+console.log(Parser.parse('aaa_any_string', p)) // 'aaa'
+console.log(Parser.parse('a_any_string', p)) // 'a'
+console.log(Parser.parse('b_any_string', p)) // will throw : unexpected "b", expecting "aaa" or "a"
+```
+
 label,
 
 many,
 many1,
+manyTill,
 count,
-between,
+
 option,
 optional,
+
+between,
+
 sepBy,
 sepBy1,
 endBy,
 endBy1,
-
 sepEndBy,
 sepEndBy1,
 
 notFollowedBy,
 eof,
-manyTill,
 lookAhead,
 
 
@@ -548,4 +581,11 @@ For running tests :
 yarn test
 ```
 
+You can use main.js for playground and run it with :
+
+```
+yarn start
+```
+
+You can fork the library and make pull requests.
 
