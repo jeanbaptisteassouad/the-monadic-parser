@@ -233,6 +233,17 @@ For more examples you can have a look at the [RFC 4180 csv](src/examples/csv.js)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 ## Api
 
 ### parse :: (String, Parser\<a\>) -> a
@@ -366,6 +377,103 @@ const p = parseTheTwoFirstChar()
 
 console.log(Parser.parse('any_string', p)) // 'an'
 ```
+
+### or :: (() -> Parser\<a\>, () -> Parser\<a\>, ..., () -> Parser\<a\>) -> (() -> Parser\<a\>)
+
+Or lets you try multiple parsers until one succeed. If one parser fails __without consuming any input__ the following parsers are tried. If one parser fails __with consuming some input__, the or function stop trying parsers and fails as well. This behaviour ensures that all parsers inside the or function will be tried at the same starting position and that the order in which parsers are tried does not matter.
+
+```js
+// Let's rewrite the previous example.
+const Parser = require('theMonadicParser')
+
+// parseAorB :: () -> Parser<Char>
+const parseAorB = Parser.or(
+  Parser.Char.char('a'), // :: () -> Parser<Char>
+  Parser.Char.char('b') // :: () -> Parser<Char>
+)
+
+// p :: Parser<Char>
+const p = parseAorB()
+
+console.log(Parser.parse('any_string', p)) // 'a'
+console.log(Parser.parse('b_any_string', p)) // 'b'
+console.log(Parser.parse('x_any_string', p)) // will throw : unexpected "x", expecting "a" or "b"
+
+// parseAorB is equivalent to parseBorA
+const parseBorA = Parser.or(
+  Parser.Char.char('b'),
+  Parser.Char.char('a')
+)
+```
+
+
+
+
+
+ttry,
+label,
+
+many,
+many1,
+count,
+between,
+option,
+optional,
+sepBy,
+sepBy1,
+endBy,
+endBy1,
+
+sepEndBy,
+sepEndBy1,
+
+notFollowedBy,
+eof,
+manyTill,
+lookAhead,
+
+
+
+
+### Char.satisfy :: ((Char) -> Bool) -> (() -> Parser\<Char\>)
+
+Satisfy parse a character that satisfies its condition or fail without consuming any input.
+
+### Char.string :: (String) -> (() -> Parser\<String\>)
+
+String parse the given string, it can fail with consuming some input. If you do not want this behaviour compose string with the ttry function.
+
+### Char.oneOf :: (String) -> (() -> Parser\<Char\>)
+
+oneOf succeed if the parsed chararcter is included in its string argument.
+
+
+### Char.noneOf :: (String) -> (() -> Parser\<Char\>)
+
+noneOf succeed if the parsed chararcter is not included in its string argument.
+
+
+spaces,
+space,
+
+### newline :: () -> Parser\<Char\>
+
+newline succeed if the parsed character is a line feed (\\n).
+
+crlf,
+endOfLine,
+tab,
+upper,
+lower,
+
+digit,
+hexDigit,
+octDigit,
+char,
+anyChar,
+
+
+
 
 ## Contribute
 
