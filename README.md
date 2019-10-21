@@ -27,6 +27,10 @@ const strToArray = (spliter, a) => a.split(spliter)
 All the types will start with a capital letter (ex : String, Array\<Number\>, ...)
 except for the type variables (ex : a, b, ...).
 
+## Install
+
+TO DO !!!!!!
+
 ## Getting Started
 
 You will create your parser by combining **monadic function :: () -> Parser\<a\>**.
@@ -231,6 +235,30 @@ For more examples you can have a look at the [RFC 4180 csv](src/examples/csv.js)
 
 TO DO !!!!!!
 
+### parse :: (String, Parser\<a\>) -> a
+
+Parse lets you run a parser with a given string.
+
+
+### pure :: (a) -> Parser\<a\>
+
+*Pure(a)* lets you create a parser that contains *a* and do nothing.
+
+```js
+const Parser = require('theMonadicParser')
+
+// p :: Parser<String>
+const p = Parser.pure('return_val')
+
+console.log(Parser.parse('any_string', p)) // 'return_val'
+```
+
+### fail :: String -> Parser\<a\>
+
+
+*Fail(error_string)* lets you create a parser that will always fail with the error message *error_string*. The fail function return a value of type *Parser<a>* but you will never be able to extract a *a* from it because the parser will fail.
+
+
 ## Contribute
 
 For running tests :
@@ -238,3 +266,5 @@ For running tests :
 ```
 yarn test
 ```
+
+
