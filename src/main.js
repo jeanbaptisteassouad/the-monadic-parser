@@ -39,22 +39,24 @@ const json_str = JSON.stringify([
 console.log(json_str)
 console.log(Parser.parse(json_str, Parser.Json.rfc4627()))
 
-const p = () => {
-  let ans = ''
-  return Parser.pipeX(
-    Parser.many(Char.string('auie')),
-    Parser.capture(a=>{
-      console.log(a)
-      ans+=a.join('')
-    }),
-    Char.anyChar,
-    Parser.pureDot(a=>ans+a)
-  )
-}
-
-console.log(Parser.parse('auieg', p()))
 
 
+
+
+
+// open :: () -> Parser<Char>
+const open = Parser.Char.char('(')
+
+// close :: () -> Parser<Char>
+const close = Parser.Char.char(')')
+
+// p :: Parser<Char>
+const p = Parser.between(open, close, Parser.Char.string('auie'))()
+
+console.log(Parser.parse('(auie)_any_string', p)) // 'auie'
+// console.log(Parser.parse('(auie_any_string', p)) // will throw : unexpected "_", expecting ")"
+// console.log(Parser.parse('auie)_any_string', p)) // will throw : unexpected "a", expecting "("
+// console.log(Parser.parse('(aui)_any_string', p)) // will throw : unexpected ")", expecting "auie"
 
 
 

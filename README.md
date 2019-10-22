@@ -209,7 +209,7 @@ const myParser = () => {
     // () -> Parser<Char>
     Parser.Char.satisfy(a => a === 'c'),
     
-    // Parser.capture(f) === (a) => {f(a); return Parser.pure();}
+    // Parser.capture(f) is equivalent to (a) => {f(a); return Parser.pure();}
     // (Char) -> Parser<Undefined>
     Parser.capture(a => ans = a),
     
@@ -381,7 +381,9 @@ console.log(Parser.parse('any_string', p)) // 'an'
 
 ### or :: (() -> Parser\<a\>, () -> Parser\<a\>, ..., () -> Parser\<a\>) -> (() -> Parser\<a\>)
 
-Or lets you try multiple parsers until one succeed. If one parser fails __without consuming any input__ the following parsers are tried. If one parser fails __with consuming some input__, the or function stop trying parsers and fails as well. This behaviour ensures that all parsers inside the or function will be tried at the same starting position and that the order in which parsers are tried does not matter.
+Or lets you try multiple parsers until one succeed. If one parser fails __without consuming any input__ the following parsers are tried. If one parser fails __with consuming some input__, the or function stop trying parsers and fails as well.
+
+This behaviour ensures that all parsers inside the or function will be tried at the same starting position and that the order in which parsers are tried does not matter.
 
 ```js
 // Let's rewrite the previous example.
@@ -447,20 +449,172 @@ console.log(Parser.parse('b_any_string', p)) // will throw : unexpected "b", exp
 
 __label(p, error_str)__ lets you change the error message by __error_str__ if __p__ fails without consuming any input.
 
+```js
+const Parser = require('theMonadicParser')
 
+// p :: Parser<Char>
+const p = Parser.Char.char('a')()
+// q :: Parser<Char>
+const q = Parser.label(Parser.Char.char('a'), 'the first letter of alphabet')()
+
+console.log(Parser.parse('any_string', p)) // 'a'
+console.log(Parser.parse('b_any_string', p)) // will throw : unexpected "b", expecting "a"
+console.log(Parser.parse('any_string', q)) // 'a'
+console.log(Parser.parse('b_any_string', q)) // will throw : unexpected "b", expecting the first letter of alphabet
+```
 
 ### many :: (() -> Parser\<a\>) -> (() -> Parser\<Array\<a\>\>)
 
+__many(p)__ lets you apply __p__ many times until it fails, __many(p)__ will never fail.
+
+```js
+const Parser = require('theMonadicParser')
+
+// p :: Parser<Array<Char>>
+const p = Parser.many(Parser.Char.char('a'))()
+
+console.log(Parser.parse('aaa_any_string', p)) // ['a', 'a', 'a']
+console.log(Parser.parse('a_any_string', p)) // ['a']
+console.log(Parser.parse('b_any_string', p)) // []
+```
+
+### many1 :: (() -> Parser\<a\>) -> (() -> Parser\<Array\<a\>\>)
+
+__many1(p)__ lets you apply __p__ many times until it fails, __many1(p)__ must at least apply successfully __p__ once.
+
+```js
+const Parser = require('theMonadicParser')
+
+// p :: Parser<Array<Char>>
+const p = Parser.many(Parser.Char.char('a'))()
+
+console.log(Parser.parse('aaa_any_string', p)) // ['a', 'a', 'a']
+console.log(Parser.parse('a_any_string', p)) // ['a']
+console.log(Parser.parse('b_any_string', p)) // will throw : unexpected "b", expecting "a"
+```
+
+### manyTill :: (() -> Parser\<a\>, () -> Parser\<end\>) -> (() -> Parser\<Array\<a\>\>)
+
+__manyTill(p, end)__ lets you apply __p__ many times until __end__ succeed, __manyTill(p, end)__ will fail if __p__ fails before __end__ succeed.
+
+```js
+const Parser = require('theMonadicParser')
+
+// end :: () -> Parser<Char>
+const end = Parser.Char.char('_')
+// p :: Parser<Array<Char>>
+const p = Parser.manyTill(Parser.Char.char('a'), end)()
+
+console.log(Parser.parse('aaa_any_string', p)) // ['a', 'a', 'a']
+console.log(Parser.parse('a_any_string', p)) // ['a']
+console.log(Parser.parse('_any_string', p)) // []
+console.log(Parser.parse('ab_any_string', p)) // will throw : unexpected "b",  expecting "a"
+```
 
 
-many1,
-manyTill,
-count,
+### count :: (Int, () -> Parser\<a\>) -> (() -> Parser\<Array\<a\>\>)
 
-option,
-optional,
+__count(n, p)__ lets you apply __p__ exactly __n__ times. If __p__ cannot be applied __n__ times, __count(n, p)__ will fail. If __n__ is negative or equal to zero, __count(n, p)__ will return an empty list.
 
-between,
+```js
+const Parser = require('theMonadicParser')
+
+// p :: Parser<Array<Char>>
+const p = Parser.count(3, Parser.Char.char('a'))()
+
+console.log(Parser.parse('aaa_any_string', p)) // ['a', 'a', 'a']
+console.log(Parser.parse('a_any_string', p)) // will throw : unexpected "_", expecting "a"
+console.log(Parser.parse('aaaaa_any_string', p)) // ['a', 'a', 'a']
+
+// q :: Parser<Array<Char>>
+const q = Parser.count(0, Parser.Char.char('a'))()
+
+console.log(Parser.parse('aaa_any_string', q)) // []
+
+// r :: Parser<Array<Char>>
+const r = Parser.count(-1, Parser.Char.char('a'))()
+
+console.log(Parser.parse('aaa_any_string', r)) // []
+```
+
+
+### option :: (a, () -> Parser\<a\>) -> (() -> Parser\<a\>)
+
+__option(a, p)__ lets you try to apply __p__, if __p__ fails without consuming any input, __option(a, p)__ returns __a__ instead, if __p__ fails with consuming some input, __option(a, p)__ will fail.
+
+This behaviour is here to assure that __option(a, p)__ is equivalent to either __p__ or __() => pure(a)__ when __p__ fails without consuming any input.
+
+```js
+const Parser = require('theMonadicParser')
+
+// p :: Parser<Char>
+const p = Parser.option('a', Parser.Char.oneOf('auie'))()
+
+console.log(Parser.parse('u_any_string', p)) // 'u'
+console.log(Parser.parse('e_any_string', p)) // 'e'
+console.log(Parser.parse('k_any_string', p)) // 'a'
+
+// q :: Parser<String>
+const q = Parser.option('a', Parser.Char.string('auie'))()
+
+console.log(Parser.parse('auie_any_string', q)) // 'auie'
+// Parser.Char.string will fail with consuming some input
+console.log(Parser.parse('aui_any_string', q)) // will throw : unexpected "_", expecting "auie"
+
+// r :: Parser<String>
+const r = Parser.option('a', Parser.ttry(Parser.Char.string('auie')))()
+console.log(Parser.parse('aui_any_string', r)) // 'a'
+```
+
+
+### optional :: (() -> Parser\<a\>) -> (() -> Parser\<Undefined\>)
+
+__optional(p)__ lets you try to apply __p__, if __p__ succeeds the result is discarded, if __p__ fails without consuming any input, __optional(p)__ is equivalent to __pure__, and if __p__ fails with consuming some input, __optional(p)__ will fail.
+
+```js
+const Parser = require('theMonadicParser')
+
+// p :: Parser<Char>
+const p = Parser.optional(Parser.Char.oneOf('auie'))()
+
+console.log(Parser.parse('u_any_string', p)) // undefined
+console.log(Parser.parse('e_any_string', p)) // undefined
+console.log(Parser.parse('k_any_string', p)) // undefined
+
+// q :: Parser<String>
+const q = Parser.optional(Parser.Char.string('auie'))()
+
+console.log(Parser.parse('auie_any_string', q)) // undefined
+// Parser.Char.string will fail with consuming some input
+console.log(Parser.parse('aui_any_string', q)) // will throw : unexpected "_", expecting "auie"
+
+// r :: Parser<String>
+const r = Parser.optional(Parser.ttry(Parser.Char.string('auie')))()
+console.log(Parser.parse('aui_any_string', r)) // undefined
+```
+
+
+### between :: (() -> Parser\<open\>, () -> Parser\<close\>, () -> Parser\<a\>) -> (() -> Parser\<a\>)
+
+__between(open, close, p)__ behaves like __p__ except that it will first apply __open__ then apply __p__ and finally apply __close__, discarding the result of __open__ and __close__.
+
+```js
+const Parser = require('theMonadicParser')
+
+// open :: () -> Parser<Char>
+const open = Parser.Char.char('(')
+
+// close :: () -> Parser<Char>
+const close = Parser.Char.char(')')
+
+// p :: Parser<Char>
+const p = Parser.between(open, close, Parser.Char.string('auie'))()
+
+console.log(Parser.parse('(auie)_any_string', p)) // 'auie'
+console.log(Parser.parse('(auie_any_string', p)) // will throw : unexpected "_", expecting ")"
+console.log(Parser.parse('auie)_any_string', p)) // will throw : unexpected "a", expecting "("
+console.log(Parser.parse('(aui)_any_string', p)) // will throw : unexpected ")", expecting "auie"
+```
 
 sepBy,
 sepBy1,
