@@ -616,8 +616,45 @@ console.log(Parser.parse('auie)_any_string', p)) // will throw : unexpected "a",
 console.log(Parser.parse('(aui)_any_string', p)) // will throw : unexpected ")", expecting "auie"
 ```
 
-sepBy,
-sepBy1,
+### sepBy :: (() -> Parser\<a\>, () -> Parser\<sep\>) -> (() -> Parser\<Array\<a\>\>)
+
+__sepBy(p, sep)__ lets you parse many __p__ separated by __sep__.
+
+```js
+const Parser = require('theMonadicParser')
+
+// sep :: () -> Parser<Char>
+const sep = Parser.Char.char(';')
+
+// p :: Parser<Array<Array<Char>>>
+const p = Parser.sepBy(Parser.many1(Parser.Char.noneOf(';')), sep)()
+
+console.log(Parser.parse('any;_str;ing', p)) // [['a','n','y'], ['_','s','t','r'], ['i','n','g']]
+console.log(Parser.parse('any', p)) // [['a','n','y']]
+console.log(Parser.parse(';', p)) // [[]]
+```
+
+
+### sepBy1 :: (() -> Parser\<a\>, () -> Parser\<sep\>) -> (() -> Parser\<Array\<a\>\>)
+
+__sepBy1(p, sep)__ is like __sepBy(p, sep)__ but it must at least successfully apply __p__ once.
+
+```js
+const Parser = require('theMonadicParser')
+
+// sep :: () -> Parser<Char>
+const sep = Parser.Char.char(';')
+
+// p :: Parser<Array<Array<Char>>>
+const p = Parser.sepBy1(Parser.many1(Parser.Char.noneOf(';')), sep)()
+
+console.log(Parser.parse('any;_str;ing', p)) // [['a','n','y'], ['_','s','t','r'], ['i','n','g']]
+console.log(Parser.parse('any', p)) // [['a','n','y']]
+console.log(Parser.parse(';', p)) // will throw : unexpected ";", expecting none of [";"]
+```
+
+
+
 endBy,
 endBy1,
 sepEndBy,

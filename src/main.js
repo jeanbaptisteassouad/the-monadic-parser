@@ -44,19 +44,14 @@ console.log(Parser.parse(json_str, Parser.Json.rfc4627()))
 
 
 
-// open :: () -> Parser<Char>
-const open = Parser.Char.char('(')
+// sep :: () -> Parser<Char>
+const sep = Parser.Char.char(';')
 
-// close :: () -> Parser<Char>
-const close = Parser.Char.char(')')
+// p :: Parser<Array<Array<Char>>>
+const p = Parser.sepBy1(Parser.many1(Parser.Char.noneOf(';')), sep)()
 
-// p :: Parser<Char>
-const p = Parser.between(open, close, Parser.Char.string('auie'))()
-
-console.log(Parser.parse('(auie)_any_string', p)) // 'auie'
-// console.log(Parser.parse('(auie_any_string', p)) // will throw : unexpected "_", expecting ")"
-// console.log(Parser.parse('auie)_any_string', p)) // will throw : unexpected "a", expecting "("
-// console.log(Parser.parse('(aui)_any_string', p)) // will throw : unexpected ")", expecting "auie"
-
+console.log(Parser.parse('any;_str;ing', p)) // [['a','n','y'], ['_','s','t','r'], ['i','n','g']]
+console.log(Parser.parse('any', p)) // [['a','n','y']]
+console.log(Parser.parse(';', p)) // will throw : unexpected ";", expecting none of [";"]
 
 
