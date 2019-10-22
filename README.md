@@ -16,7 +16,7 @@ We are going to use a type annotation inspired by flow.js and typescript.
 // Here is some function type example.
 // The '::' can be read 'has type'.
 
-// getOne :: () -> Number
+// getOne :: () -> Number
 const getOne = () => 1
 
 // Here 'a' is a type variable and 'Array<a>' is a polymorphic type.
@@ -409,7 +409,7 @@ const parseBorA = Parser.or(
 )
 ```
 
-### ttry :: (() -> Parser/<a/>) -> (() -> Parser/<a/>)
+### ttry :: (() -> Parser/<a/>) -> (() -> Parser/<a/>)
 
 __Ttry(p)__ behaves like __p__ except that if __p__ fails with consuming some input, __ttry(p)__ will fail without consuming any input. Ttry function lets you try a parser and if it fails pretends that it didn’t consume any input.
 
@@ -463,7 +463,7 @@ console.log(Parser.parse('any_string', q)) // 'a'
 console.log(Parser.parse('b_any_string', q)) // will throw : unexpected "b", expecting the first letter of alphabet
 ```
 
-### many :: (() -> Parser\<a\>) -> (() -> Parser\<Array\<a\>\>)
+### many :: (() -> Parser\<a\>) -> (() -> Parser\<Array\<a\>\>)
 
 __many(p)__ lets you apply __p__ many times until it fails, __many(p)__ will never fail.
 
@@ -500,7 +500,7 @@ __manyTill(p, end)__ lets you apply __p__ many times until __end__ succeed, __ma
 ```js
 const Parser = require('theMonadicParser')
 
-// end :: () -> Parser<Char>
+// end :: () -> Parser<Char>
 const end = Parser.Char.char('_')
 // p :: Parser<Array<Char>>
 const p = Parser.manyTill(Parser.Char.char('a'), end)()
@@ -512,7 +512,7 @@ console.log(Parser.parse('ab_any_string', p)) // will throw : unexpected "b",  e
 ```
 
 
-### count :: (Int, () -> Parser\<a\>) -> (() -> Parser\<Array\<a\>\>)
+### count :: (Int, () -> Parser\<a\>) -> (() -> Parser\<Array\<a\>\>)
 
 __count(n, p)__ lets you apply __p__ exactly __n__ times. If __p__ cannot be applied __n__ times, __count(n, p)__ will fail. If __n__ is negative or equal to zero, __count(n, p)__ will return an empty list.
 
@@ -526,12 +526,12 @@ console.log(Parser.parse('aaa_any_string', p)) // ['a', 'a', 'a']
 console.log(Parser.parse('a_any_string', p)) // will throw : unexpected "_", expecting "a"
 console.log(Parser.parse('aaaaa_any_string', p)) // ['a', 'a', 'a']
 
-// q :: Parser<Array<Char>>
+// q :: Parser<Array<Char>>
 const q = Parser.count(0, Parser.Char.char('a'))()
 
 console.log(Parser.parse('aaa_any_string', q)) // []
 
-// r :: Parser<Array<Char>>
+// r :: Parser<Array<Char>>
 const r = Parser.count(-1, Parser.Char.char('a'))()
 
 console.log(Parser.parse('aaa_any_string', r)) // []
@@ -554,7 +554,7 @@ console.log(Parser.parse('u_any_string', p)) // 'u'
 console.log(Parser.parse('e_any_string', p)) // 'e'
 console.log(Parser.parse('k_any_string', p)) // 'a'
 
-// q :: Parser<String>
+// q :: Parser<String>
 const q = Parser.option('a', Parser.Char.string('auie'))()
 
 console.log(Parser.parse('auie_any_string', q)) // 'auie'
@@ -567,7 +567,7 @@ console.log(Parser.parse('aui_any_string', r)) // 'a'
 ```
 
 
-### optional :: (() -> Parser\<a\>) -> (() -> Parser\<Undefined\>)
+### optional :: (() -> Parser\<a\>) -> (() -> Parser\<Undefined\>)
 
 __optional(p)__ lets you try to apply __p__, if __p__ succeeds the result is discarded, if __p__ fails without consuming any input, __optional(p)__ is equivalent to __pure__, and if __p__ fails with consuming some input, __optional(p)__ will fail.
 
@@ -581,7 +581,7 @@ console.log(Parser.parse('u_any_string', p)) // undefined
 console.log(Parser.parse('e_any_string', p)) // undefined
 console.log(Parser.parse('k_any_string', p)) // undefined
 
-// q :: Parser<String>
+// q :: Parser<String>
 const q = Parser.optional(Parser.Char.string('auie'))()
 
 console.log(Parser.parse('auie_any_string', q)) // undefined
@@ -594,7 +594,7 @@ console.log(Parser.parse('aui_any_string', r)) // undefined
 ```
 
 
-### between :: (() -> Parser\<open\>, () -> Parser\<close\>, () -> Parser\<a\>) -> (() -> Parser\<a\>)
+### between :: (() -> Parser\<open\>, () -> Parser\<close\>, () -> Parser\<a\>) -> (() -> Parser\<a\>)
 
 __between(open, close, p)__ behaves like __p__ except that it will first apply __open__ then apply __p__ and finally apply __close__, discarding the result of __open__ and __close__.
 
@@ -648,17 +648,17 @@ Satisfy parse a character that satisfies its condition or fail without consuming
 
 String parse the given string, it can fail with consuming some input. If you do not want this behaviour compose string with the ttry function.
 
-### Char.oneOf :: (String) -> (() -> Parser\<Char\>)
+### Char.oneOf :: (String) -> (() -> Parser\<Char\>)
 
 oneOf succeed if the parsed character is included in its string argument.
 
 
-### Char.noneOf :: (String) -> (() -> Parser\<Char\>)
+### Char.noneOf :: (String) -> (() -> Parser\<Char\>)
 
 noneOf succeed if the parsed character is not included in its string argument.
 
 
-### Char.space :: () -> Parser\<Char\>
+### Char.space :: () -> Parser\<Char\>
 
 This parser succeed if the parsed character is one of the following character :
 - a character tabulation (\\t)
@@ -683,12 +683,12 @@ Parser.Char.spaces === Parser.many(Parser.Char.space)
 newline succeed if the parsed character is a line feed (\\n).
 
 
-### Char.crlf :: () -> Parser\<Char\>
+### Char.crlf :: () -> Parser\<Char\>
 
 crlf succeed if the parsed character is a carriage return immediately followed by a line feed character. This parser always failed without consuming any input.
 
 
-### Char.endOfLine :: () -> Parser\<Char\>
+### Char.endOfLine :: () -> Parser\<Char\>
 
 ```js
 const Parser = require('theMonadicParser')
@@ -696,11 +696,11 @@ const Parser = require('theMonadicParser')
 Parser.Char.endOfLine === Parser.or(Parser.Char.newline, Parser.Char.crlf)
 ```
 
-### Char.tab :: () -> Parser\<Char\>
+### Char.tab :: () -> Parser\<Char\>
 
 tab succedd if teh parsed character is a tabulation character (\\t)
 
-### Char.upper :: () -> Parser\<Char\>
+### Char.upper :: () -> Parser\<Char\>
 
 This parser will parse any upper characters (i.e. any character a that satisfy a.toUpperCase() === a).
 
@@ -720,11 +720,11 @@ This parser will parse any hexadecimal digit characters (same as regex /[0-9a-fA
 
 This parser will parse any octal digit characters (same as regex /[0-7]/).
 
-### Char.char :: (Char) -> (() -> Parser\<Char\>)
+### Char.char :: (Char) -> (() -> Parser\<Char\>)
 
 This parser will only parse character equal to its argument.
 
-### Char.anyChar :: () -> Parser\<Char\>
+### Char.anyChar :: () -> Parser\<Char\>
 
 This parser will successfully parse any character.
 
