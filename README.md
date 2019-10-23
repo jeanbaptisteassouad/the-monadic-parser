@@ -787,7 +787,7 @@ Parser.Char.endOfLine === Parser.or(Parser.Char.newline, Parser.Char.crlf)
 
 ### Char.tab :: () -> Parser\<Char\>
 
-tab succedd if teh parsed character is a tabulation character (\\t)
+tab succeed if teh parsed character is a tabulation character (\\t)
 
 ### Char.upper :: () -> Parser\<Char\>
 
