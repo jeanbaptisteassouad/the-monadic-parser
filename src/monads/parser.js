@@ -132,8 +132,11 @@ const parse = (str, parser) => {
   )
 }
 
-// without consuming any input /////////////////////////////////
 // (() -> Parser<a>, () -> Parser<a>) -> (() -> Parser<a>)
+// Or function must try the next parser only if the current
+// one has failed without consuming any input.
+// It guarantees that all parsers inside the or function
+// will be tried from the same starting position.
 const _or = (es, p, ...ps) => pipe(
   getReadingHead,
   (reading_head) => caseOfX(
@@ -169,8 +172,10 @@ const ttry = (p) => pipe(
   )
 )
 
-// without consuming any input /////////////////////////////////
 // (() -> Parser<a>, String) -> (() -> Parser<a>)
+// Label function must change the error message only if
+// the parser p has failed without consuming any input.
+// It guarantees that the correct error message will be raised.
 const label = (p, str) => pipe(
   getReadingHead,
   (reading_head) => caseOfX(
@@ -244,8 +249,10 @@ const between = (open, close, p) => () => {
   )
 }
 
-// without consuming any input /////////////////////////////////
 // (a, () -> Parser<a>) -> (() -> Parser<a>)
+// Option function should fail when parser p fails
+// with consuming some input. It guarantees that option(p)
+// will not move the reading head forward when it will fail.
 const option = (a, p) => pipe(
   getReadingHead,
   (reading_head) => caseOfX(
@@ -264,8 +271,10 @@ const option = (a, p) => pipe(
   )
 )
 
-// without consuming any input /////////////////////////////////
 // (() -> Parser<a>) -> (() -> Parser<Undefined>)
+// Optional function should fail when parser p fails
+// with consuming some input. It guarantees that option(p)
+// will not move the reading head forward when it will fail.
 const optional = (p) => pipe(
   option(null, p),
   () => pure()
@@ -334,8 +343,9 @@ const sepEndBy1 = (p, sep) => () => {
   )
 }
 
-// does not consume any input /////////////////////////////////
 // (() -> Parser<a>) -> (() -> Parser<Undefined>)
+// notFollowedBy function should not consume any input
+// when parser p has failed.
 const notFollowedBy = (p) => pipe(
   getReadingHead,
   (reading_head) => caseOfX(
@@ -371,8 +381,9 @@ const manyTill = (p, end) => caseOf(
   () => pure([])
 )
 
-// does not consume any input /////////////////////////////////
 // (() -> Parser<a>) -> (() -> Parser<a>)
+// lookAhead function should not consume any input
+// when parser p is successfully applied.
 const lookAhead = (p) => pipe(
   getReadingHead,
   (reading_head) => caseOfX(
