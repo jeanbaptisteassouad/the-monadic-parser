@@ -201,14 +201,20 @@ const _many = (array, p) => {
     }
   )
 }
-const many = (p) => pipe(
-  () => pure([]),
-  (a) => _many(a, p)(),
-)
-const many1 = (p) => pipe(
-  p,
-  (a) => _many([a], p)(),
-)
+const many = (p) => {
+  return caseOf(
+    ttry(p),
+    (e) => pure([]),
+    (a) => _many([a], p)()
+  )
+}
+const many1 = (p) => {
+  return caseOf(
+    ttry(p),
+    fail,
+    (a) => _many([a], p)()
+  )
+}
 
 // (Int, () -> Parser<a>) -> (() -> Parser<[a]>)
 const count = (n, p) => () => {
@@ -295,7 +301,7 @@ const sepBy1 = (p, sep) => {
   )
 }
 
-// (() -> Parser<a>, () -> Parser<sep>) -> (() -> Parser<a>)
+// (() -> Parser<a>, () -> Parser<sep>) -> (() -> Parser<[a]>)
 const _endBy = (p, sep) => () => {
   let ans
   return pipeX(
@@ -308,7 +314,7 @@ const _endBy = (p, sep) => () => {
 const endBy = (p, sep) => many(_endBy(p, sep))
 const endBy1 = (p, sep) => many1(_endBy(p, sep))
 
-// (() -> Parser<a>, () -> Parser<sep>) -> (() -> Parser<a>)
+// (() -> Parser<a>, () -> Parser<sep>) -> (() -> Parser<[a]>)
 const sepEndBy = (p, sep) => () => {
   let ans
   return pipeX(
@@ -344,9 +350,11 @@ const notFollowedBy = (p) => pipe(
 
 // () -> Parser<Undefined>
 const eof = notFollowedBy(
-  pipe(
-    getOneChar,
-    consumeOne,
+  ttry(
+    pipe(
+      getOneChar,
+      consumeOne,
+    )
   )
 )
 

@@ -631,7 +631,7 @@ const p = Parser.sepBy(Parser.many1(Parser.Char.noneOf(';')), sep)()
 
 console.log(Parser.parse('any;_str;ing', p)) // [['a','n','y'], ['_','s','t','r'], ['i','n','g']]
 console.log(Parser.parse('any', p)) // [['a','n','y']]
-console.log(Parser.parse(';', p)) // [[]]
+console.log(Parser.parse(';', p)) // []
 ```
 
 
@@ -655,14 +655,66 @@ console.log(Parser.parse(';', p)) // will throw : unexpected ";", expecting none
 
 
 
-endBy,
-endBy1,
-sepEndBy,
-sepEndBy1,
+### endBy :: (() -> Parser\<a\>, () -> Parser\<sep\>) -> (() -> Parser\<Array\<a\>\>)
 
-notFollowedBy,
-eof,
-lookAhead,
+__endBy(p, sep)__ lets you parse many __p__ ended by __sep__.
+
+```js
+const Parser = require('theMonadicParser')
+
+// sep :: () -> Parser<Char>
+const sep = Parser.Char.char(';')
+
+// p :: Parser<Array<Array<Char>>>
+const p = Parser.endBy1(Parser.many1(Parser.Char.noneOf(';')), sep)()
+
+console.log(Parser.parse('any;_str;ing;', p)) // [['a','n','y'], ['_','s','t','r'], ['i','n','g']]
+console.log(Parser.parse('any;', p)) // [['a','n','y']]
+console.log(Parser.parse('any', p)) // []
+```
+
+
+### endBy1 :: (() -> Parser\<a\>, () -> Parser\<sep\>) -> (() -> Parser\<Array\<a\>\>)
+
+__endBy1(p, sep)__ is like __endBy(p, sep)__ but it must at least successfully apply __p__ and __sep__ once.
+
+
+```js
+const Parser = require('theMonadicParser')
+
+// sep :: () -> Parser<Char>
+const sep = Parser.Char.char(';')
+
+// p :: Parser<Array<Array<Char>>>
+const p = Parser.endBy(Parser.many1(Parser.Char.noneOf(';')), sep)()
+
+console.log(Parser.parse('any;_str;ing;', p)) // [['a','n','y'], ['_','s','t','r'], ['i','n','g']]
+console.log(Parser.parse('any;', p)) // [['a','n','y']]
+console.log(Parser.parse('any', p)) // will throw : unexpected "y", expecting ";"
+```
+
+### sepEndBy :: (() -> Parser\<a\>, () -> Parser\<sep\>) -> (() -> Parser\<Array\<a\>\>)
+
+__sepEndBy(p, sep)__ is like __sepBy(p, sep)__ but it can optionally parse a __sep__ at the end.
+
+### sepEndBy1 :: (() -> Parser\<a\>, () -> Parser\<sep\>) -> (() -> Parser\<Array\<a\>\>)
+
+__sepEndBy1(p, sep)__ is like __sepBy1(p, sep)__ but it can optionally parse a __sep__ at the end.
+
+### notFollowedBy :: (() -> Parser\<a\>) -> (() -> Parser\<Undefined\>)
+
+__notFollowedBy(p)__ will succeed when __p__ fails and will fail when __p__ succeeds.
+When __notFollowedBy__ succeed it will not consume any input, but when it fails, it can consume some input.
+
+
+### eof :: () -> Parser\<Undefined\>
+
+__Eof__ lets you parse the end of file, i.e. the end of the current parsed string. __Eof__ will never consume any input.
+
+
+### lookAhead :: (() -> Parser\<a\>) -> (() -> Parser\<a\>)
+
+__lookAhead__ lets you do arbitrary look ahead. __lookAhead(p)__ will not consume any input if __p__ succeeds, if __p__ fails, __lookAhead(p)__ will fail as well and can consume some input.
 
 
 

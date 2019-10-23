@@ -309,15 +309,15 @@ describe('Parser', () => {
     describe('.many', () => {
       it('should return an array of match', () => {
         const str = 'auie'
-        const f = Parser.many(Char.oneOf('iua'))
+        const f = Parser.many(Char.oneOf('iua'))()
 
-        expect(Parser.parse(str, f())).to.deep.equal(
+        expect(Parser.parse(str, f)).to.deep.equal(
           ['a', 'u', 'i']
         )
-        expect(Parser.parse('a', f())).to.deep.equal(
+        expect(Parser.parse('a', f)).to.deep.equal(
           ['a']
         )
-        expect(Parser.parse('str', f())).to.deep.equal(
+        expect(Parser.parse('str', f)).to.deep.equal(
           []
         )
       })

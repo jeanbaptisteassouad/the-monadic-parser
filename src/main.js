@@ -42,16 +42,3 @@ console.log(Parser.parse(json_str, Parser.Json.rfc4627()))
 
 
 
-
-
-// sep :: () -> Parser<Char>
-const sep = Parser.Char.char(';')
-
-// p :: Parser<Array<Array<Char>>>
-const p = Parser.sepBy1(Parser.many1(Parser.Char.noneOf(';')), sep)()
-
-console.log(Parser.parse('any;_str;ing', p)) // [['a','n','y'], ['_','s','t','r'], ['i','n','g']]
-console.log(Parser.parse('any', p)) // [['a','n','y']]
-console.log(Parser.parse(';', p)) // will throw : unexpected ";", expecting none of [";"]
-
-
