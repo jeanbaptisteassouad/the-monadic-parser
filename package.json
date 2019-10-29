@@ -1,8 +1,8 @@
 {
   "name": "the-monadic-parser",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "the-monadic-parser is a parser library that lets you create and compose parsers easily.",
-  "main": "index.js",
+  "main": "src/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/jeanbaptisteassouad/the-monadic-parser.git"
