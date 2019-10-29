@@ -55,16 +55,14 @@ const quotedChar = Parser.or(
 )
 
 // quotedCell :: () -> Parser<String>
-const quotedCell = () => {
-  let content
-  return Parser.pipeX(
+const quotedCell = Parser.pipe(
+  Parser.between(
+    Char.char('"'),
     Char.char('"'),
     Parser.many(quotedChar),
-    Parser.capture(a => content = a),
-    Char.char('"'),
-    () => Parser.pure(content.join(''))
-  )
-}
+  ),
+  Parser.pureDot(a => a.join(''))
+)
 
 // notQuotedCell :: () -> Parser<String>
 const notQuotedCell = Parser.pipe(
@@ -123,7 +121,7 @@ const csv = Parser.sepBy(line, lineSeparator)
 
 A line separator could be “\n\r” or “\r\n” or “\n” or “\r”.
 
-The __or__ monadic function combinator lets us try multiple parsers until one succeeds. There is a subtlety, to guarantee that all parsers will be tried from the same string position, the parsers inside __or__ must fail without consuming any input. For example, if we apply the parser __string(“\n\r”)__ to the string “\n\t”, the parser will fail with consuming one input.
+The __or__ monadic function combinator lets us try multiple parsers until one succeeds. There is a subtlety, to guarantee that all parsers will be tried from the same starting position, the parsers inside __or__ must fail without consuming any input. For example, if we apply the parser __string(“\n\r”)__ to the string “\n\t”, the parser will fail with consuming one input.
 
 The ttry function lets us solve this issue, ttry(p) behave like p except that if p fails with consuming some input, ttry(p) will not consume any input.
 
@@ -182,143 +180,44 @@ const notQuotedCell = Parser.pipe(
 )
 ```
 
-
-
-
-
-TO REMOVE !!!!!!!!!
-
+A quoted cell is composed of many “quoted characters” between double quotes.
 
 
 ```js
-const Parser = require('theMonadicParser')
-
-// Parser.pure :: (a) -> Parser<a>
-
-// p :: Parser<Bool>
-const p = Parser.pure(true)
-
-console.log(Parser.parse('any_string', p)) // true
+// quotedCell :: () -> Parser<String>
+const quotedCell = Parser.pipe(
+  Parser.between(
+    Char.char('"'),
+    Char.char('"'),
+    Parser.many(quotedChar),
+  ), // :: () -> Parser<Array<Char>>
+  Parser.pureDot(a => a.join('')) // :: Array<Char> -> Parser<String>
+)
 ```
 
-The getOneChar function read the current char.
+
+
+
+
+
+TO DO !!!!!!!!
+
+
+
 
 ```js
-const Parser = require('theMonadicParser')
-
-// Parser.getOneChar :: () -> Parser<Char>
-
-console.log(Parser.parse('ap', Parser.getOneChar())) // 'a'
-
-// p :: Parser<String>
-const p = Parser.pipeX(
-  getOneChar,
-  (a) => Parser.pipeX(
-    getOneChar,
-    (b) => Parser.pure(a + b)
+// quotedChar :: () -> Parser<Char>
+const quotedChar = Parser.or(
+  Char.noneOf('"'),
+  Parser.ttry(
+    Parser.pipe(
+      Char.string('""'),
+      () => Parser.pure('"')
+    )
   )
 )
-// multiple getOneChar calls always return the same result.
-console.log(Parser.parse('ap', p)) // 'aa'
 ```
 
-The consumeOne function consume one character.
-
-```js
-const Parser = require('theMonadicParser')
-
-// Parser.consumeOne :: () -> Parser<Undefined>
-
-// p :: Parser<String>
-const p = Parser.pipeX(
-  consumeOne,
-  getOneChar
-)
-console.log(Parser.parse('ap', p)) // 'p'
-```
-
-The fail function lets you indicate that the parser has failed.
-
-```js
-const Parser = require('theMonadicParser')
-
-// Parser.fail :: (String) -> Parser<a>
-
-// p :: Parser<String>
-const p = fail('optional error message')
-Parser.parse('ap', p) // throw
-```
-
-Now that we have all the elements, we can explain mySatisfy function.
-
-```js
-const Parser = require('theMonadicParser')
-
-// mySatisfy :: ((Char) -> Bool) -> () -> Parser<Char>
-const mySatisfy = (f) => Parser.pipe(
-  // we first get the character ...
-  // () -> Parser<Char>
-  Parser.getOneChar,
-  
-  // (Char) -> Parser<Char>
-  (char) => {
-    // ... then if f(char) ...
-    if (f(char)) {
-      // is true, we ...
-      // Parser<Char>
-      return Parser.pipe(
-        // ... consume the character and ...
-        // () -> Parser<Undefined>
-        Parser.consumeOne,
-        
-        // ... return the parsed character.
-        // () -> Parser<Char>
-        () => Parser.pure(char)
-      )()
-    } else {
-      // is false, the parser has failed.
-      // :: Parser<a> where a == Char
-      return Parser.fail()
-    }
-  }
-)
-```
-
-The mySatisfy function is already defined in the library (Parser.Char.satisfy).
-We can rewrite the example :
-```js
-const Parser = require('theMonadicParser')
-
-// myParser :: () -> Parser<Char>
-const myParser = () => {
-  let ans
-  return Parser.pipeX(
-    // We are now using the library function.
-    // () -> Parser<Char>
-    Parser.Char.satisfy(a => a === 'c'),
-    
-    // Parser.capture(f) is equivalent to (a) => {f(a); return Parser.pure();}
-    // (Char) -> Parser<Undefined>
-    Parser.capture(a => ans = a),
-    
-    // Parser.eof succeed only when there is no more characters to parse.
-    // () -> Parser<Undefined>
-    Parser.eof,
-    // () -> Parser<Char>
-    () => Parser.pure(ans)
-  )
-}
-
-// my_parser :: Parser<Char>
-const my_parser = myParser()
-
-// char_parsed :: Char
-const char_parsed = Parser.parse('c', my_parser)
-```
-
-To create your parser you can use other combinators like 'or', 'sepBy', 'endBy' ...
-
-For more examples you can have a look at the [RFC 4180 csv](src/examples/csv.js) and [RFC 4627 json](scr/examples/json.js) parsers.
 
 
 
@@ -327,10 +226,7 @@ For more examples you can have a look at the [RFC 4180 csv](src/examples/csv.js)
 
 
 
-
-
-
-
+For another example, you can have a look at the [RFC 4627 json](scr/examples/json.js) parsers.
 
 
 ## Api
