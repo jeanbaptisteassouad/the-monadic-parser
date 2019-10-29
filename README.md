@@ -6,7 +6,15 @@ This library is inspired by the Haskell parser package [Parsec](http://hackage.h
 
 ## Install
 
-TO DO !!!!!!
+```
+yarn add the-monadic-parser
+```
+
+or
+
+```
+npm install the-monadic-parser
+```
 
 ## Type annotations
 
