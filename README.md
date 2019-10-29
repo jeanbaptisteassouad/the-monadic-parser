@@ -195,14 +195,7 @@ const quotedCell = Parser.pipe(
 )
 ```
 
-
-
-
-
-
-TO DO !!!!!!!!
-
-
+A quoted character is either a character that is not a double quote or two double quotes in a row.
 
 
 ```js
@@ -211,13 +204,37 @@ const quotedChar = Parser.or(
   Char.noneOf('"'),
   Parser.ttry(
     Parser.pipe(
-      Char.string('""'),
-      () => Parser.pure('"')
+      Char.string('""'), // :: () -> Parser<String>
+      () => Parser.pure('"') // :: () -> Parser<Char>
     )
   )
 )
 ```
 
+We can now apply our parser by using the __parse__ function and a given string to parse.
+
+```js
+// parser :: Parser<[[String]]>
+const parser = csv()
+
+let str = ''
+str += 'auie,eiua,aai,eeiu\r\n'
+str += '"sstt","asa""tuier","ss,rt","stsn"\r\n'
+str += 'tse,rr,s,"auietsn\r\n'
+str += '\r\n'
+str += 'ett"\r\n'
+str += 'rrrr,122,13,34'
+
+console.log(Parser.parse(str, parser))
+// [
+//   ['auie', 'eiua', 'aai', 'eeiu'],
+//   ['sstt', 'asa"tuier', 'ss,rt', 'stsn'],
+//   ['tse', 'rr', 's', 'auietsn\r\n\r\nett'],
+//   ['rrrr', '122', '13', '34']
+// ]
+```
+
+Here was an overview of the library mechanism, for another example, you can have a look at the [RFC 4627 json](scr/examples/json.js) parsers.
 
 
 
@@ -226,7 +243,8 @@ const quotedChar = Parser.or(
 
 
 
-For another example, you can have a look at the [RFC 4627 json](scr/examples/json.js) parsers.
+
+
 
 
 ## Api
