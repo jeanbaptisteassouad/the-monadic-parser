@@ -34,73 +34,161 @@ except for the type variables (ex : a, b, ...).
 
 ## Getting Started
 
-You will create your parser by combining **monadic function :: () -> Parser\<a\>**.
+We are going to have a look to the RFC 4180 csv parser implemented with this library.
 
-A monadic function is a function that return **a monadic value :: Parser\<a\>**.
+In the library, we create parser by combining monadic functions i.e. functions that are of the form : __a -> Parser\<b\>__ where __a__ and __b__ can be anything.
 
-Let's look at this example that create a parser that parse
-exactly one char satisfying a condition f.
 
 ```js
 const Parser = require('theMonadicParser')
+const Char = Parser.Char
 
-// mySatisfy :: ((Char) -> Bool) -> () -> Parser<Char>
-const mySatisfy = (f) => Parser.pipe(
-  Parser.getOneChar,
-  (char) => {
-    if (f(char)) {
-      return Parser.pipe(
-        Parser.consumeOne,
-        () => Parser.pure(char)
-      )()
-    } else {
-      return Parser.fail()
-    }
-  }
+// quotedChar :: () -> Parser<Char>
+const quotedChar = Parser.or(
+  Char.noneOf('"'),
+  Parser.ttry(
+    Parser.pipe(
+      Char.string('""'),
+      () => Parser.pure('"')
+    )
+  )
 )
 
-// myParser :: () -> Parser<Char>
-const myParser = () => {
-  let ans
+// quotedCell :: () -> Parser<String>
+const quotedCell = () => {
+  let content
   return Parser.pipeX(
-    mySatisfy(a => a === 'c'),
-    Parser.capture(a => ans = a),
-    Parser.eof,
-    () => Parser.pure(ans)
+    Char.char('"'),
+    Parser.many(quotedChar),
+    Parser.capture(a => content = a),
+    Char.char('"'),
+    () => Parser.pure(content.join(''))
   )
 }
 
-// my_parser :: Parser<Char>
-const my_parser = myParser()
-
-// char_parsed :: Char
-const char_parsed = Parser.parse('c', my_parser)
-
-// This calls would throw.
-// Parser.parse('cd', my_parser)
-// Parser.parse('', my_parser)
-// Parser.parse('d', my_parser)
-```
-
-Let's analyse mySatisfy function.
-
-The pipe function is one of the most important of
-the library, it lets you chain monadic functions.
-
-```js
-const Parser = require('theMonadicParser')
-
-// aToParser_d :: (a) -> Parser<d>
-const aToParser_d = Parser.pipe(
-  aToParser_b, // :: (a) -> Parser<b>
-  bToParser_c, // :: (b) -> Parser<c>
-  cToParser_d, // :: (c) -> Parser<d>
+// notQuotedCell :: () -> Parser<String>
+const notQuotedCell = Parser.pipe(
+  Parser.many(Char.noneOf(',\n\r')),
+  Parser.pureDot(a => a.join(''))
 )
 
-const pipeX = (...args) => Parser.pipe(...args)()
+// cell :: () -> Parser<String>
+const cell = Parser.or(quotedCell, notQuotedCell)
+
+// cellSeparator :: () -> Parser<Char>
+const cellSeparator = Char.char(',')
+
+// line :: () -> Parser<[String]>
+const line = Parser.sepBy(cell, cellSeparator)
+
+// lineSeparator :: () -> Parser<String>
+const lineSeparator = Parser.or(
+  Parser.ttry(Char.string('\n\r')),
+  Parser.ttry(Char.string('\r\n')),
+  Char.string('\n'),
+  Char.string('\r'),
+)
+
+// csv :: () -> Parser<[[String]]>
+const csv = Parser.sepBy(line, lineSeparator)
+
+// parser :: Parser<[[String]]>
+const parser = csv()
+
+let str = ''
+str += 'auie,eiua,aai,eeiu\r\n'
+str += '"sstt","asa""tuier","ss,rt","stsn"\r\n'
+str += 'tse,rr,s,"auietsn\r\n'
+str += '\r\n'
+str += 'ett"\r\n'
+str += 'rrrr,122,13,34'
+
+console.log(Parser.parse(str, parser))
+// [
+//   ['auie', 'eiua', 'aai', 'eeiu'],
+//   ['sstt', 'asa"tuier', 'ss,rt', 'stsn'],
+//   ['tse', 'rr', 's', 'auietsn\r\n\r\nett'],
+//   ['rrrr', '122', '13', '34']
+// ]
 ```
 
-The pure function is a monadic value creator.
+Let’s analyse this piece of code.
+
+A csv is composed of lines separated by some line separator.
+
+```js
+// csv :: () -> Parser<[[String]]>
+const csv = Parser.sepBy(line, lineSeparator)
+```
+
+A line separator could be “\n\r” or “\r\n” or “\n” or “\r”.
+
+The __or__ monadic function combinator lets us try multiple parsers until one succeeds. There is a subtlety, to guarantee that all parsers will be tried from the same string position, the parsers inside __or__ must fail without consuming any input. For example, if we apply the parser __string(“\n\r”)__ to the string “\n\t”, the parser will fail with consuming one input.
+
+The ttry function lets us solve this issue, ttry(p) behave like p except that if p fails with consuming some input, ttry(p) will not consume any input.
+
+The four functions inside __or__ will all fail without consuming any input. The __or__ function will so behave correctly.
+
+```js
+// lineSeparator :: () -> Parser<String>
+const lineSeparator = Parser.or(
+  Parser.ttry(Char.string('\n\r')),
+  Parser.ttry(Char.string('\r\n')),
+  Char.string('\n'),
+  Char.string('\r'),
+)
+```
+
+A csv line is composed of cells separated by some cell separator.
+
+```js
+// line :: () -> Parser<[String]>
+const line = Parser.sepBy(cell, cellSeparator)
+```
+
+A cell separator must be ","
+
+```js
+// cellSeparator :: () -> Parser<Char>
+const cellSeparator = Char.char(',')
+```
+
+A csv cell can be either a quoted cell or a not quoted cell.
+
+
+```js
+// cell :: () -> Parser<String>
+const cell = Parser.or(quotedCell, notQuotedCell)
+```
+
+A not quoted cell is composed of many characters that are neither “,” nor “\n” nor “\r”.
+
+The __pipe__ monadic function combinator lets us chain monadic functions together. It is a reverse composition, i.e. __pipe :: (a -> Parser\<b\>, b -> Parser\<c\>) -> (a -> Parser\<c\>)__. Whenever a function of the chain fails, the remaining functions of the chain are not executed.
+
+__noneOf(“,\n\r”)__ will parse any character that is neither “,” nor “\n” nor “\r”.
+
+__many(p)__ will parse zero or more occurrences of __p__.
+
+So __many(noneOf(“,\n\r”))__ has type __() -> Parser\<Array\<Char\>\>__ but we want __() -> Parser\<String\>__.
+
+The __pureDot__ function takes a regular function (__a -> b__) and turn it into a monadic function (__a -> Parser\<b\>__), so __pureDot(a => a.join(‘’))__ has type __Array\<Char\> -> Parser\<String\>__.
+
+
+```js
+// notQuotedCell :: () -> Parser<String>
+const notQuotedCell = Parser.pipe(
+  Parser.many(Char.noneOf(',\n\r')), // :: () -> Parser<Array<Char>>
+  Parser.pureDot(a => a.join('')) // :: Array<Char> -> Parser<String>
+)
+```
+
+
+
+
+
+TO REMOVE !!!!!!!!!
+
+
 
 ```js
 const Parser = require('theMonadicParser')
