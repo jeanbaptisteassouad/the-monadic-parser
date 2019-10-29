@@ -1,4 +1,4 @@
-# theMonadicParser
+# the-monadic-parser
 
 ## Acknowledgement
 
@@ -40,7 +40,7 @@ In the library, we create parser by combining monadic functions i.e. functions t
 
 
 ```js
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 const Char = Parser.Char
 
 // quotedChar :: () -> Parser<Char>
@@ -254,7 +254,7 @@ Here was an overview of the library mechanism, for another example, you can have
 Parse lets you run a parser with a given string.
 
 ```js
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 // any_parser :: Parser<Array<String>>
 Parser.parse('any_string', any_parser) // :: Array<String>
@@ -265,7 +265,7 @@ Parser.parse('any_string', any_parser) // :: Array<String>
 __Pure(a)__ lets you create a parser that contains __a__ and do nothing.
 
 ```js
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 // p :: Parser<String>
 const p = Parser.pure('return_val')
@@ -279,7 +279,7 @@ console.log(Parser.parse('any_string', p)) // 'return_val'
 __Fail(error_string)__ lets you create a parser that will always fail with the error message __error_string__. The fail function return a value of type __Parser\<a\>__ but you will never be able to extract a __a__ from it because the parser will fail.
 
 ```js
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 // p :: Parser<a>
 const p = Parser.fail('my error message')
@@ -292,7 +292,7 @@ console.log(Parser.parse('any_string', p)) // will throw an error with message :
 __getOneChar()__ lets you create a parser that will read one char at the current reading head position, this parser will not consume any input.
 
 ```js
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 // p :: Parser<Char>
 const p = Parser.getOneChar()
@@ -310,7 +310,7 @@ __consumeOne()__ lets you create a parser that consumes one character of the inp
 Pipe lets you chain monadic functions together. If a parser failed in the chain, the remaining parsers are not executed.
 
 ```js
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 // pCreator :: () -> Parser<Char>
 const pCreator = Parser.pipe(
@@ -335,7 +335,7 @@ console.log(Parser.parse('any_string', q)) // 'n'
 Capture lets you capture the value returned by a parser inside a monadic function chain.
 
 ```js
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 // parseTheTwoFirstChar :: () -> Parser<String>
 const parseTheTwoFirstChar = () => {
@@ -361,7 +361,7 @@ pureDot lets you transform a regular function __a -> b__ to a monadic function _
 
 ```js
 // Let's rewrite the previous example.
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 // parseTheTwoFirstChar :: () -> Parser<String>
 const parseTheTwoFirstChar = () => {
@@ -389,7 +389,7 @@ This behaviour ensures that all parsers inside the or function will be tried at 
 
 ```js
 // Let's rewrite the previous example.
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 // parseAorB :: () -> Parser<Char>
 const parseAorB = Parser.or(
@@ -416,7 +416,7 @@ const parseBorA = Parser.or(
 __Ttry(p)__ behaves like __p__ except that if __p__ fails with consuming some input, __ttry(p)__ will fail without consuming any input. Ttry function lets you try a parser and if it fails pretends that it didn’t consume any input.
 
 ```js
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 // badParseAAAorA :: () -> Parser<String>
 const badParseAAAorA = Parser.or(
@@ -452,7 +452,7 @@ console.log(Parser.parse('b_any_string', p)) // will throw : unexpected "b", exp
 __label(p, error_str)__ lets you change the error message by __error_str__ if __p__ fails without consuming any input.
 
 ```js
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 // p :: Parser<Char>
 const p = Parser.Char.char('a')()
@@ -470,7 +470,7 @@ console.log(Parser.parse('b_any_string', q)) // will throw : unexpected "b", exp
 __many(p)__ lets you apply __p__ many times until it fails, __many(p)__ will never fail.
 
 ```js
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 // p :: Parser<Array<Char>>
 const p = Parser.many(Parser.Char.char('a'))()
@@ -485,7 +485,7 @@ console.log(Parser.parse('b_any_string', p)) // []
 __many1(p)__ lets you apply __p__ many times until it fails, __many1(p)__ must at least apply successfully __p__ once.
 
 ```js
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 // p :: Parser<Array<Char>>
 const p = Parser.many(Parser.Char.char('a'))()
@@ -500,7 +500,7 @@ console.log(Parser.parse('b_any_string', p)) // will throw : unexpected "b", exp
 __manyTill(p, end)__ lets you apply __p__ many times until __end__ succeed, __manyTill(p, end)__ will fail if __p__ fails before __end__ succeed.
 
 ```js
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 // end :: () -> Parser<Char>
 const end = Parser.Char.char('_')
@@ -519,7 +519,7 @@ console.log(Parser.parse('ab_any_string', p)) // will throw : unexpected "b",  e
 __count(n, p)__ lets you apply __p__ exactly __n__ times. If __p__ cannot be applied __n__ times, __count(n, p)__ will fail. If __n__ is negative or equal to zero, __count(n, p)__ will return an empty list.
 
 ```js
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 // p :: Parser<Array<Char>>
 const p = Parser.count(3, Parser.Char.char('a'))()
@@ -547,7 +547,7 @@ __option(a, p)__ lets you try to apply __p__, if __p__ fails without consuming a
 This behaviour is here to assure that __option(a, p)__ is equivalent to either __p__ or __() => pure(a)__ when __p__ fails without consuming any input.
 
 ```js
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 // p :: Parser<Char>
 const p = Parser.option('a', Parser.Char.oneOf('auie'))()
@@ -574,7 +574,7 @@ console.log(Parser.parse('aui_any_string', r)) // 'a'
 __optional(p)__ lets you try to apply __p__, if __p__ succeeds the result is discarded, if __p__ fails without consuming any input, __optional(p)__ is equivalent to __pure__, and if __p__ fails with consuming some input, __optional(p)__ will fail.
 
 ```js
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 // p :: Parser<Char>
 const p = Parser.optional(Parser.Char.oneOf('auie'))()
@@ -601,7 +601,7 @@ console.log(Parser.parse('aui_any_string', r)) // undefined
 __between(open, close, p)__ behaves like __p__ except that it will first apply __open__ then apply __p__ and finally apply __close__, discarding the result of __open__ and __close__.
 
 ```js
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 // open :: () -> Parser<Char>
 const open = Parser.Char.char('(')
@@ -623,7 +623,7 @@ console.log(Parser.parse('(aui)_any_string', p)) // will throw : unexpected ")",
 __sepBy(p, sep)__ lets you parse many __p__ separated by __sep__.
 
 ```js
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 // sep :: () -> Parser<Char>
 const sep = Parser.Char.char(';')
@@ -642,7 +642,7 @@ console.log(Parser.parse(';', p)) // []
 __sepBy1(p, sep)__ is like __sepBy(p, sep)__ but it must at least successfully apply __p__ once.
 
 ```js
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 // sep :: () -> Parser<Char>
 const sep = Parser.Char.char(';')
@@ -662,7 +662,7 @@ console.log(Parser.parse(';', p)) // will throw : unexpected ";", expecting none
 __endBy(p, sep)__ lets you parse many __p__ ended by __sep__.
 
 ```js
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 // sep :: () -> Parser<Char>
 const sep = Parser.Char.char(';')
@@ -682,7 +682,7 @@ __endBy1(p, sep)__ is like __endBy(p, sep)__ but it must at least successfully a
 
 
 ```js
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 // sep :: () -> Parser<Char>
 const sep = Parser.Char.char(';')
@@ -764,7 +764,7 @@ This parser succeed if the parsed character is one of the following character :
 ### Char.spaces :: () -> Parser\<Array\<Char\>\>
 
 ```js
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 Parser.Char.spaces === Parser.many(Parser.Char.space)
 ```
@@ -782,7 +782,7 @@ crlf succeed if the parsed character is a carriage return immediately followed b
 ### Char.endOfLine :: () -> Parser\<Char\>
 
 ```js
-const Parser = require('theMonadicParser')
+const Parser = require('the-monadic-parser')
 
 Parser.Char.endOfLine === Parser.or(Parser.Char.newline, Parser.Char.crlf)
 ```

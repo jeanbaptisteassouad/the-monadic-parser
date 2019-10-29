@@ -1,18 +1,18 @@
 {
-  "name": "theMonadicParser",
+  "name": "the-monadic-parser",
   "version": "1.0.0",
-  "description": "theMonadicParser is a parser library that lets you create and compose parsers easily.",
+  "description": "the-monadic-parser is a parser library that lets you create and compose parsers easily.",
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jeanbaptisteassouad/theMonadicParser.git"
+    "url": "https://github.com/jeanbaptisteassouad/the-monadic-parser.git"
   },
   "author": "Jean-Baptiste Assouad <jean.baptiste@assouad.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jeanbaptisteassouad/theMonadicParser/issues"
+    "url": "https://github.com/jeanbaptisteassouad/the-monadic-parser/issues"
   },
-  "homepage": "https://github.com/jeanbaptisteassouad/theMonadicParser",
+  "homepage": "https://github.com/jeanbaptisteassouad/the-monadic-parser",
   "scripts": {
     "start": "node ./src/main.js",
     "test": "mocha \"./src/**/*.test.js\""
