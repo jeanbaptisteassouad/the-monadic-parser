@@ -835,6 +835,11 @@ This parser will successfully parse any character.
 
 ## Contribute
 
+The naming convention used through the code is :
+- lowerCamelCase for all functions
+- UpperCamelCase for all modules
+- snake_case for the rest
+
 For running tests :
 
 ```
